@@ -208,20 +208,43 @@ $products = $stmt->fetchAll();
                     <?php foreach ($products as $product): ?>
                     <div class="col">
                         <div class="card h-100 product-card">
-                            <img src="<?php echo htmlspecialchars($product['image']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                            <div class="position-relative" style="height: 200px; overflow: hidden;">
+                                <img src="uploads/products/<?php echo htmlspecialchars($product['image']); ?>" 
+                                     class="card-img-top" 
+                                     alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                     style="width: 100%; height: 100%; object-fit: cover;">
+                                <?php if ($product['status'] == 0): ?>
+                                    <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 m-2 rounded">
+                                        Hết hàng
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                             <div class="card-body">
                                 <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
-                                <p class="card-text text-danger"><?php echo number_format($product['price'], 0, ',', '.'); ?>đ</p>
-                                <?php if ($product['original_price']): ?>
-                                <p class="card-text"><small class="text-muted text-decoration-line-through"><?php echo number_format($product['original_price'], 0, ',', '.'); ?>đ</small></p>
+                                <p class="card-text text-danger fw-bold"><?php echo number_format($product['price'], 0, ',', '.'); ?>đ</p>
+                                <?php if (isset($product['original_price']) && $product['original_price'] > $product['price']): ?>
+                                <p class="card-text">
+                                    <small class="text-muted text-decoration-line-through">
+                                        <?php echo number_format($product['original_price'], 0, ',', '.'); ?>đ
+                                    </small>
+                                    <span class="text-danger ms-2">
+                                        -<?php echo round((1 - $product['price']/$product['original_price']) * 100); ?>%
+                                    </span>
+                                </p>
                                 <?php endif; ?>
-                                <div class="d-flex justify-content-between">
-                                    <a href="product-detail.php?id=<?php echo $product['id']; ?>" class="btn btn-outline-primary">
-                                        <i class="fas fa-eye me-1"></i> Xem
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <a href="product-detail.php?id=<?php echo $product['id']; ?>" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye me-1"></i> Chi tiết
                                     </a>
-                                    <button class="btn btn-primary add-to-cart" data-product-id="<?php echo $product['id']; ?>">
-                                        <i class="fas fa-shopping-cart me-1"></i> Thêm
-                                    </button>
+                                    <?php if ($product['status'] == 1): ?>
+                                        <button class="btn btn-primary btn-sm add-to-cart" data-product-id="<?php echo $product['id']; ?>">
+                                            <i class="fas fa-shopping-cart me-1"></i> Thêm vào giỏ
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="btn btn-secondary btn-sm" disabled>
+                                            <i class="fas fa-shopping-cart me-1"></i> Hết hàng
+                                        </button>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>

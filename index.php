@@ -80,6 +80,21 @@ require_once 'config/session.php';
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
+        .admin-link {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .admin-link:hover {
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -230,6 +245,11 @@ require_once 'config/session.php';
             </div>
         </div>
     </footer>
+
+    <!-- Admin Link -->
+    <a href="admin/login.php" class="admin-link">
+        <i class="fas fa-user-shield"></i> Admin Panel
+    </a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>

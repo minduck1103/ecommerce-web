@@ -45,26 +45,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // If no errors, attempt login
     if (empty($errors)) {
         try {
-            $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+            // Get user with role
+            $stmt = $conn->prepare("SELECT id, email, password, role FROM users WHERE email = ? LIMIT 1");
             $stmt->execute([$formData['email']]);
-            $user = $stmt->fetch();
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($user && password_verify($formData['password'], $user['password'])) {
+                // Store user data in session
                 $_SESSION['user_id'] = $user['id'];
-                $_SESSION['email'] = $user['email'];
-                $_SESSION['role'] = $user['role'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_role'] = $user['role'];
                 
-                // Check if there's a redirect URL in session storage
-                echo "<script>
-                    const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
-                    if (redirectUrl) {
-                        sessionStorage.removeItem('redirectAfterLogin');
-                        window.location.href = redirectUrl;
-                    } else {
-                        window.location.href = 'index.php';
-                    }
-                </script>";
-                exit;
+                // Check role and redirect
+                if ($user['role'] === 'admin') {
+                    header('Location: admin/index.php');
+                    exit();
+                } else {
+                    header('Location: index.php');
+                    exit();
+                }
             } else {
                 $error = 'Email hoặc mật khẩu không đúng';
             }
