@@ -12,27 +12,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // Check if user is logged in
 if (!isLoggedIn()) {
-    echo json_encode([
-        'success' => false, 
-        'message' => 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng',
-        'requireLogin' => true
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập']);
     exit;
 }
 
 // Get product ID and quantity
 $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
-$quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
+$quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 0;
 
 // Validate product ID
 if ($product_id <= 0) {
     echo json_encode(['success' => false, 'message' => 'Invalid product ID']);
-    exit;
-}
-
-// Validate quantity
-if ($quantity <= 0) {
-    echo json_encode(['success' => false, 'message' => 'Invalid quantity']);
     exit;
 }
 
@@ -46,19 +36,28 @@ if (!$product) {
     exit;
 }
 
-// Check stock
-if ($product['stock'] < $quantity) {
-    echo json_encode(['success' => false, 'message' => 'Not enough stock']);
-    exit;
+// If quantity is 0, remove from cart
+if ($quantity === 0) {
+    removeFromCart($product_id);
+} else {
+    // Check stock
+    if ($product['stock'] < $quantity) {
+        echo json_encode(['success' => false, 'message' => 'Not enough stock']);
+        exit;
+    }
+    
+    // Update quantity
+    updateCartQuantity($product_id, $quantity);
 }
 
-// Add to cart
-addToCart($product_id, $quantity);
+// Get updated cart total
+$cart_total = getCartTotal($conn);
 
 // Return success response
 echo json_encode([
     'success' => true,
-    'message' => 'Product added to cart',
-    'cartCount' => count($_SESSION['cart'])
+    'message' => 'Cart updated',
+    'cartCount' => count($_SESSION['cart']),
+    'subtotal' => $cart_total
 ]);
 ?> 

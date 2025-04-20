@@ -280,7 +280,14 @@ $products = $stmt->fetchAll();
                         document.querySelector('.badge').textContent = data.cartCount;
                         alert('Đã thêm sản phẩm vào giỏ hàng');
                     } else {
-                        alert(data.message || 'Có lỗi xảy ra');
+                        if (data.requireLogin) {
+                            // Store current URL in session storage
+                            sessionStorage.setItem('redirectAfterLogin', window.location.href);
+                            // Redirect to login page
+                            window.location.href = 'login.php';
+                        } else {
+                            alert(data.message || 'Có lỗi xảy ra');
+                        }
                     }
                 })
                 .catch(error => {
