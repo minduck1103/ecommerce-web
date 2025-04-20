@@ -1,15 +1,18 @@
 <?php
 require_once __DIR__ . '/../config/session.php';
 
-// Function to check admin authentication and redirect to admin login if needed
+/**
+ * Function to check admin authentication and redirect to login if needed
+ * Uses isAdmin() from session.php
+ */
 function checkAdminAuth() {
-    if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-        header('Location: login.php');
+    if (!isAdmin()) {
+        // Nếu đang ở trong thư mục actions, điều hướng về login.php ở thư mục admin
+        if (strpos($_SERVER['PHP_SELF'], '/admin/actions/') !== false) {
+            header('Location: ../login.php');
+        } else {
+            header('Location: login.php');
+        }
         exit();
     }
-}
-
-function isAdmin() {
-    return isset($_SESSION['user_id']) && $_SESSION['role'] === 'admin';
-}
-?> 
+} 

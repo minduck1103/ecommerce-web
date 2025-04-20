@@ -46,8 +46,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($user && password_verify($formData['password'], $user['password'])) {
                 // Store user data in session
                 $_SESSION['user_id'] = $user['id'];
-                $_SESSION['user_email'] = $user['email'];
-                $_SESSION['user_role'] = $user['role'];
+                $_SESSION['email'] = $user['email'];
+                $_SESSION['role'] = $user['role'];
+                
+                // Debug log
+                error_log('Login successful. Session data: ' . print_r($_SESSION, true));
                 
                 // Redirect to admin dashboard
                 header('Location: dashboard.php');
@@ -56,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = 'Email hoặc mật khẩu không đúng';
             }
         } catch (PDOException $e) {
+            error_log('Login error: ' . $e->getMessage());
             $error = 'Có lỗi xảy ra, vui lòng thử lại sau';
         }
     } else {
