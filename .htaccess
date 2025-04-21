@@ -1,0 +1,14 @@
+# Enable rewrite engine
+RewriteEngine On
+RewriteBase /shoppingcart/
+
+# Allow direct access to files
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+
+# Route all other requests through index.php
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+
+# Ensure PHP errors are displayed
+php_flag display_errors on
+php_value error_reporting E_ALL 

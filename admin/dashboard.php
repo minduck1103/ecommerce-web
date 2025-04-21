@@ -16,6 +16,13 @@ $stats = [
 
 // Get categories for product form
 $categories = $conn->query("SELECT id, name FROM categories ORDER BY name")->fetchAll();
+
+// Lưu thông tin session vào biến JavaScript
+$sessionData = [
+    'user_id' => $_SESSION['user_id'] ?? null,
+    'role' => $_SESSION['role'] ?? null,
+    'username' => $_SESSION['username'] ?? null
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -25,6 +32,7 @@ $categories = $conn->query("SELECT id, name FROM categories ORDER BY name")->fet
     <title>Admin Dashboard - ShopCart</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <style>
         .sidebar {
             min-height: 100vh;
@@ -58,9 +66,12 @@ $categories = $conn->query("SELECT id, name FROM categories ORDER BY name")->fet
         }
         .section {
             display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
         }
         .section.active {
             display: block;
+            opacity: 1;
         }
         #loadingSpinner {
             position: fixed;
@@ -72,6 +83,38 @@ $categories = $conn->query("SELECT id, name FROM categories ORDER BY name")->fet
             background: rgba(255,255,255,0.8);
             padding: 2rem;
             border-radius: 10px;
+        }
+        .section-loading {
+            position: relative;
+            min-height: 200px;
+        }
+        .section-loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+        }
+        .section-loading::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 1001;
+        }
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
     </style>
 </head>
@@ -105,7 +148,7 @@ $categories = $conn->query("SELECT id, name FROM categories ORDER BY name")->fet
                 <a href="#orders" class="nav-link" data-section="orders">
                     <i class="fas fa-shopping-cart me-2"></i> Quản lý đơn hàng
                 </a>
-                <a href="index.php">
+                <a href="../logout.php">
                     <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
                 </a>
             </div>
@@ -201,51 +244,46 @@ $categories = $conn->query("SELECT id, name FROM categories ORDER BY name")->fet
     </div>
 
     <!-- Add Product Modal -->
-    <div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Thêm sản phẩm mới</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="addProductModalLabel">Thêm sản phẩm mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="addProductForm">
+                    <form id="addProductForm" enctype="multipart/form-data" onsubmit="event.preventDefault(); saveProduct();">
                         <div class="mb-3">
-                            <label for="productName" class="form-label">Tên sản phẩm</label>
-                            <input type="text" class="form-control" id="productName" name="name" required>
+                            <label for="name" class="form-label">Tên sản phẩm</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
                         </div>
                         <div class="mb-3">
-                            <label for="productCategory" class="form-label">Danh mục</label>
-                            <select class="form-select" id="productCategory" name="category_id" required>
+                            <label for="category_id" class="form-label">Danh mục</label>
+                            <select class="form-select" id="category_id" name="category_id" required>
                                 <option value="">Chọn danh mục</option>
-                                <?php foreach ($categories as $category): ?>
-                                <option value="<?php echo $category['id']; ?>">
-                                    <?php echo htmlspecialchars($category['name']); ?>
-                                </option>
-                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="productPrice" class="form-label">Giá</label>
-                            <input type="number" class="form-control" id="productPrice" name="price" required>
+                            <label for="price" class="form-label">Giá</label>
+                            <input type="number" class="form-control" id="price" name="price" required min="0">
                         </div>
                         <div class="mb-3">
-                            <label for="productQuantity" class="form-label">Số lượng</label>
-                            <input type="number" class="form-control" id="productQuantity" name="quantity" required>
+                            <label for="quantity" class="form-label">Số lượng</label>
+                            <input type="number" class="form-control" id="quantity" name="quantity" value="0" min="0">
                         </div>
                         <div class="mb-3">
-                            <label for="productImage" class="form-label">Hình ảnh</label>
-                            <input type="file" class="form-control" id="productImage" name="image" accept="image/*" required>
+                            <label for="description" class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="productDescription" class="form-label">Mô tả</label>
-                            <textarea class="form-control" id="productDescription" name="description" rows="3"></textarea>
+                            <label for="image" class="form-label">Hình ảnh</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            <button type="submit" class="btn btn-primary">Lưu</button>
                         </div>
                     </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" onclick="saveProduct()">Lưu</button>
                 </div>
             </div>
         </div>
@@ -343,143 +381,517 @@ $categories = $conn->query("SELECT id, name FROM categories ORDER BY name")->fet
         </div>
     </div>
 
+    <!-- Edit Category Modal -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chỉnh sửa danh mục</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editCategoryForm">
+                        <input type="hidden" id="editCategoryId" name="id">
+                        <div class="mb-3">
+                            <label for="editCategoryName" class="form-label">Tên danh mục</label>
+                            <input type="text" class="form-control" id="editCategoryName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editCategoryDescription" class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="editCategoryDescription" name="description" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="updateCategory()">Cập nhật</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm người dùng mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="mb-3">
+                            <label for="userEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="userEmail" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Tên người dùng</label>
+                            <input type="text" class="form-control" id="username" name="username">
+                        </div>
+                        <div class="mb-3">
+                            <label for="userPhone" class="form-label">Số điện thoại</label>
+                            <input type="text" class="form-control" id="userPhone" name="phone">
+                        </div>
+                        <div class="mb-3">
+                            <label for="userPassword" class="form-label">Mật khẩu</label>
+                            <input type="password" class="form-control" id="userPassword" name="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userRole" class="form-label">Vai trò</label>
+                            <select class="form-select" id="userRole" name="is_admin">
+                                <option value="0">Người dùng</option>
+                                <option value="1">Admin</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="saveUser()">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chỉnh sửa người dùng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserForm">
+                        <input type="hidden" id="editUserId" name="id">
+                        <div class="mb-3">
+                            <label for="editUserEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="editUserEmail" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editUserUsername" class="form-label">Tên người dùng</label>
+                            <input type="text" class="form-control" id="editUserUsername" name="username">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editUserPhone" class="form-label">Số điện thoại</label>
+                            <input type="text" class="form-control" id="editUserPhone" name="phone">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editUserRole" class="form-label">Vai trò</label>
+                            <select class="form-select" id="editUserRole" name="is_admin">
+                                <option value="0">Người dùng</option>
+                                <option value="1">Admin</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editUserPassword" class="form-label">Mật khẩu mới (để trống nếu không thay đổi)</label>
+                            <input type="password" class="form-control" id="editUserPassword" name="password">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="updateUser()">Cập nhật</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Order Modal -->
+    <div class="modal fade" id="editOrderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chỉnh sửa đơn hàng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editOrderForm">
+                        <input type="hidden" id="editOrderId" name="id">
+                        <div class="mb-3">
+                            <label for="editOrderStatus" class="form-label">Trạng thái đơn hàng</label>
+                            <select class="form-select" id="editOrderStatus" name="status">
+                                <option value="pending">Chờ xử lý</option>
+                                <option value="processing">Đang xử lý</option>
+                                <option value="shipped">Đã giao hàng</option>
+                                <option value="completed">Hoàn thành</option>
+                                <option value="cancelled">Đã hủy</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="updateOrder()">Cập nhật</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script>
-        // Global loading functions
-        function showLoading() {
-            document.getElementById('loadingSpinner').classList.remove('d-none');
+        // Lưu thông tin session vào biến JavaScript
+        const sessionData = <?php echo json_encode($sessionData); ?>;
+        
+        // Kiểm tra session
+        function checkSession() {
+            if (!sessionData.user_id || sessionData.role !== 'admin') {
+                console.error('Session không hợp lệ, chuyển hướng đến trang đăng nhập');
+                window.location.href = '../login.php';
+                return false;
+            }
+            return true;
+        }
+        
+        // Global state
+        let currentSection = 'dashboard';
+        let isLoading = false;
+        let dataTables = {};
+        let lastLoadTime = {};
+        let loadAttempts = {};
+
+        // Function to show/hide loading state
+        function setLoadingState(sectionElement, loading) {
+            if (loading) {
+                sectionElement.classList.add('section-loading');
+            } else {
+                sectionElement.classList.remove('section-loading');
+            }
         }
 
-        function hideLoading() {
-            document.getElementById('loadingSpinner').classList.add('d-none');
+        // Function to switch sections
+        function switchSection(sectionId) {
+            // Ẩn tất cả các section
+            document.querySelectorAll('.section').forEach(s => {
+                s.classList.remove('active');
+                setTimeout(() => {
+                    s.style.display = 'none';
+                }, 300);
+            });
+            
+            // Hiển thị section được chọn
+            const selectedSection = document.getElementById(sectionId);
+            if (selectedSection) {
+                selectedSection.style.display = 'block';
+                // Đợi một chút để đảm bảo display: block đã được áp dụng
+                setTimeout(() => {
+                    selectedSection.classList.add('active');
+                }, 50);
+            }
+            
+            // Cập nhật active state cho menu
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if (link.getAttribute('data-section') === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        // Function to initialize DataTables
+        function initializeDataTables() {
+            // Hủy các DataTable cũ nếu có
+            Object.values(dataTables).forEach(table => {
+                if (table) {
+                    table.destroy();
+                }
+            });
+            dataTables = {};
+
+            // Khởi tạo DataTable cho bảng sản phẩm nếu có
+            const productsTable = document.getElementById('productsTable');
+            if (productsTable) {
+                dataTables.products = new DataTable(productsTable, {
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
+                    },
+                    order: [[0, 'desc']],
+                    pageLength: 10,
+                    responsive: true
+                });
+            }
+
+            // Khởi tạo DataTable cho bảng danh mục nếu có
+            const categoriesTable = document.getElementById('categoriesTable');
+            if (categoriesTable) {
+                dataTables.categories = new DataTable(categoriesTable, {
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
+                    },
+                    order: [[0, 'desc']],
+                    pageLength: 10,
+                    responsive: true
+                });
+            }
+
+            // Khởi tạo DataTable cho bảng người dùng nếu có
+            const usersTable = document.getElementById('usersTable');
+            if (usersTable) {
+                dataTables.users = new DataTable(usersTable, {
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
+                    },
+                    order: [[0, 'desc']],
+                    pageLength: 10,
+                    responsive: true
+                });
+            }
+
+            // Khởi tạo DataTable cho bảng đơn hàng nếu có
+            const ordersTable = document.getElementById('ordersTable');
+            if (ordersTable) {
+                dataTables.orders = new DataTable(ordersTable, {
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
+                    },
+                    order: [[0, 'desc']],
+                    pageLength: 10,
+                    responsive: true
+                });
+            }
         }
 
         // Function to load section content
-        async function loadSection(sectionName) {
-            if (sectionName === 'dashboard') {
-                document.querySelectorAll('.section').forEach(section => {
-                    section.classList.remove('active');
-                    if (section.id === 'dashboard') {
-                        section.classList.add('active');
-                    }
-                });
+        async function loadSection(section) {
+            // Kiểm tra session trước khi tải
+            if (!checkSession()) return;
+            
+            // Kiểm tra nếu đang tải
+            if (isLoading) {
+                console.log('Đang tải section khác, bỏ qua yêu cầu tải section:', section);
                 return;
             }
-
+            
+            // Kiểm tra thời gian tải lại
+            const now = Date.now();
+            if (lastLoadTime[section] && (now - lastLoadTime[section] < 2000)) {
+                console.log('Tải lại quá nhanh, bỏ qua yêu cầu tải section:', section);
+                return;
+            }
+            
+            // Kiểm tra số lần tải
+            if (loadAttempts[section] && loadAttempts[section] > 3) {
+                console.log('Quá nhiều lần tải, bỏ qua yêu cầu tải section:', section);
+                return;
+            }
+            
             try {
-                showLoading();
-                const response = await fetch(`sections/${sectionName}.php`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                currentSection = section;
+                switchSection(section);
+                
+                // If dashboard, no need to load data
+                if (section === 'dashboard') {
+                    return;
                 }
+
+                const selectedSection = document.getElementById(section);
+                if (!selectedSection) return;
+
+                isLoading = true;
+                setLoadingState(selectedSection, true);
+                
+                // Cập nhật thời gian tải và số lần tải
+                lastLoadTime[section] = now;
+                loadAttempts[section] = (loadAttempts[section] || 0) + 1;
+                
+                const response = await fetch(`sections/${section}.php`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    },
+                    credentials: 'same-origin' // Thêm credentials để gửi cookies
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
                 
-                if (data.success) {
-                    const targetSection = document.getElementById(sectionName);
-                    targetSection.innerHTML = data.html;
-                    document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
-                    targetSection.classList.add('active');
-                } else {
+                if (data.success && currentSection === section) { // Check if section hasn't changed
+                    selectedSection.innerHTML = data.html;
+                    
+                    // Khởi tạo DataTables sau khi nội dung được tải
+                    setTimeout(() => {
+                        initializeDataTables();
+                    }, 100);
+                    
+                    // Reset số lần tải sau khi tải thành công
+                    loadAttempts[section] = 0;
+                } else if (!data.success) {
                     throw new Error(data.message || 'Có lỗi xảy ra khi tải dữ liệu');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert(error.message || 'Có lỗi xảy ra khi tải dữ liệu');
+                const errorMessage = error.message || 'Có lỗi xảy ra khi tải dữ liệu';
+                showAlert('danger', errorMessage);
+                
+                const selectedSection = document.getElementById(section);
+                if (selectedSection && currentSection === section) {
+                    selectedSection.innerHTML = `
+                        <div class="alert alert-danger" role="alert">
+                            ${errorMessage}
+                        </div>`;
+                }
             } finally {
-                hideLoading();
+                isLoading = false;
+                const selectedSection = document.getElementById(section);
+                if (selectedSection) {
+                    setLoadingState(selectedSection, false);
+                }
             }
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            const navLinks = document.querySelectorAll('.nav-link');
-
-            // Handle navigation
-            navLinks.forEach(link => {
+            // Kiểm tra session khi trang tải
+            if (!checkSession()) return;
+            
+            // Khởi tạo Bootstrap tooltips và popovers
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl);
+            });
+            
+            // Xử lý sự kiện click cho menu
+            document.querySelectorAll('.nav-link').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     const section = this.getAttribute('data-section');
-                    
-                    // Update active state
-                    navLinks.forEach(l => l.classList.remove('active'));
-                    this.classList.add('active');
-
-                    // Load section content
-                    loadSection(section);
-
-                    // Update URL hash
-                    window.location.hash = section;
+                    if (section) {
+                        window.location.hash = section;
+                        loadSection(section);
+                    }
                 });
             });
-
-            // Handle initial load based on URL hash
-            const initialSection = window.location.hash.slice(1) || 'dashboard';
-            const initialLink = document.querySelector(`[data-section="${initialSection}"]`);
-            if (initialLink) {
-                initialLink.classList.add('active');
-                loadSection(initialSection);
+            
+            // Xử lý hash URL khi load trang
+            const hash = window.location.hash.substring(1);
+            const defaultSection = hash || 'dashboard';
+            loadSection(defaultSection);
+            
+            // Xử lý sự kiện hashchange
+            window.addEventListener('hashchange', function() {
+                const newSection = window.location.hash.substring(1) || 'dashboard';
+                if (newSection !== currentSection) {
+                    loadSection(newSection);
+                }
+            });
+            
+            // Thêm event listener cho modal thêm sản phẩm
+            const addProductModal = document.getElementById('addProductModal');
+            if (addProductModal) {
+                addProductModal.addEventListener('show.bs.modal', async function () {
+                    try {
+                        const response = await fetch('sections/get_categories.php');
+                        const data = await response.json();
+                        if (data.success) {
+                            const select = document.getElementById('category_id');
+                            select.innerHTML = '<option value="">Chọn danh mục</option>';
+                            select.innerHTML += data.categories.map(category => 
+                                `<option value="${category.id}">${category.name}</option>`
+                            ).join('');
+                        }
+                    } catch (error) {
+                        console.error('Error loading categories:', error);
+                    }
+                });
             }
         });
 
-        // Product management functions
-        async function editProduct(productId) {
+        // Function to show alert messages
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+            alertDiv.setAttribute('role', 'alert');
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Cập nhật các hàm xử lý sản phẩm
+        async function saveProduct() {
+            // Kiểm tra session trước khi thực hiện
+            if (!checkSession()) return;
+            
+            const form = document.getElementById('addProductForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const formData = new FormData(form);
             try {
-                showLoading();
-                const response = await fetch(`sections/get_product.php?id=${productId}`);
-                
+                const response = await fetch('actions/add_product.php', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin' // Thêm credentials để gửi cookies
+                });
+
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const data = await response.json();
-                console.log('Product data:', data); // Debug log
+                const result = await response.json();
+                if (result.success) {
+                    // Đóng modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
+                    if (modal) {
+                        modal.hide();
+                    } else {
+                        document.getElementById('addProductModal').style.display = 'none';
+                        document.querySelector('.modal-backdrop').remove();
+                        document.body.classList.remove('modal-open');
+                    }
 
-                if (data.success) {
-                    // Populate edit form
-                    const form = document.getElementById('editProductForm');
-                    const product = data.product;
+                    // Reset form
+                    form.reset();
 
-                    document.getElementById('editProductId').value = product.id;
-                    document.getElementById('editProductName').value = product.name;
-                    document.getElementById('editProductCategory').value = product.category_id;
-                    document.getElementById('editProductPrice').value = product.price;
-                    document.getElementById('editProductQuantity').value = product.quantity || 0;
-                    document.getElementById('editProductStatus').value = product.status || 0;
-                    document.getElementById('editProductDescription').value = product.description || '';
-                    
-                    // Update image preview
-                    const imageUrl = product.image ? 
-                        `../uploads/products/${product.image}` : 
-                        '../uploads/products/default.jpg';
-                    document.getElementById('currentProductImage').src = imageUrl;
-                    
-                    // Show edit modal
-                    const editModal = new bootstrap.Modal(document.getElementById('editProductModal'));
-                    editModal.show();
+                    // Hiển thị thông báo thành công
+                    showAlert('success', 'Thêm sản phẩm thành công!');
+
+                    // Tải lại danh sách sản phẩm
+                    await loadSection('products');
                 } else {
-                    throw new Error(data.message || 'Không thể tải thông tin sản phẩm');
+                    showAlert('danger', result.message || 'Có lỗi xảy ra khi thêm sản phẩm');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert(error.message || 'Có lỗi xảy ra khi tải thông tin sản phẩm');
-            } finally {
-                hideLoading();
+                showAlert('danger', 'Có lỗi xảy ra khi thêm sản phẩm: ' + error.message);
             }
         }
 
         async function updateProduct() {
+            // Kiểm tra session trước khi thực hiện
+            if (!checkSession()) return;
+            
             const form = document.getElementById('editProductForm');
             const formData = new FormData(form);
 
             try {
-                showLoading();
                 const response = await fetch('actions/update_product.php', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    credentials: 'same-origin' // Thêm credentials để gửi cookies
                 });
 
                 const data = await response.json();
-                console.log('Server response:', data); // Debug log
-
                 if (data.success) {
                     // Đóng modal
                     const modal = document.getElementById('editProductModal');
@@ -490,7 +902,7 @@ $categories = $conn->query("SELECT id, name FROM categories ORDER BY name")->fet
                     form.reset();
                     
                     // Hiển thị thông báo thành công
-                    alert('Cập nhật sản phẩm thành công!');
+                    showAlert('success', 'Cập nhật sản phẩm thành công!');
                     
                     // Tải lại danh sách sản phẩm
                     await loadSection('products');
@@ -499,140 +911,42 @@ $categories = $conn->query("SELECT id, name FROM categories ORDER BY name")->fet
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert(error.message || 'Có lỗi xảy ra khi cập nhật sản phẩm');
-            } finally {
-                hideLoading();
+                showAlert('danger', error.message || 'Có lỗi xảy ra khi cập nhật sản phẩm');
             }
         }
 
         async function deleteProduct(productId) {
+            // Kiểm tra session trước khi thực hiện
+            if (!checkSession()) return;
+            
             if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
                 return;
             }
 
             try {
-                showLoading();
                 const response = await fetch('actions/delete_product.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ id: productId })
+                    body: JSON.stringify({ id: productId }),
+                    credentials: 'same-origin' // Thêm credentials để gửi cookies
                 });
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
 
                 const data = await response.json();
                 if (data.success) {
-                    alert('Xóa sản phẩm thành công');
-                    loadSection('products');
+                    showAlert('success', 'Xóa sản phẩm thành công');
+                    await loadSection('products');
                 } else {
                     throw new Error(data.message || 'Không thể xóa sản phẩm');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert(error.message || 'Có lỗi xảy ra khi xóa sản phẩm');
-            } finally {
-                hideLoading();
+                showAlert('danger', error.message || 'Có lỗi xảy ra khi xóa sản phẩm');
             }
         }
 
-        // Category management functions
-        async function saveCategory() {
-            const form = document.getElementById('addCategoryForm');
-            const formData = new FormData(form);
-
-            try {
-                const response = await fetch('actions/add_category.php', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('Thêm danh mục thành công!');
-                    bootstrap.Modal.getInstance(document.getElementById('addCategoryModal')).hide();
-                    loadSection('categories');
-                } else {
-                    alert(data.message || 'Có lỗi xảy ra khi thêm danh mục');
-                }
-            } catch (error) {
-                alert('Có lỗi xảy ra khi thêm danh mục');
-            }
-        }
-
-        async function editCategory(id) {
-            // Implement edit category functionality
-            console.log('Edit category:', id);
-        }
-
-        async function deleteCategory(id) {
-            if (confirm('Bạn có chắc chắn muốn xóa danh mục này?')) {
-                try {
-                    const response = await fetch('actions/delete_category.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ id: id })
-                    });
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        alert('Xóa danh mục thành công!');
-                        loadSection('categories');
-                    } else {
-                        alert(data.message || 'Có lỗi xảy ra khi xóa danh mục');
-                    }
-                } catch (error) {
-                    alert('Có lỗi xảy ra khi xóa danh mục');
-                }
-            }
-        }
-
-        // Update loadContent function to use loading spinner
-        async function loadContent(section) {
-            try {
-                showLoading();
-                const response = await fetch(`sections/${section}.php`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                
-                // Hide all sections
-                document.querySelectorAll('.section').forEach(el => el.classList.add('d-none'));
-                
-                // Show selected section
-                const sectionElement = document.getElementById(`${section}Section`);
-                if (sectionElement) {
-                    sectionElement.classList.remove('d-none');
-                    if (data.success) {
-                        sectionElement.innerHTML = data.html;
-                    } else {
-                        sectionElement.innerHTML = `<div class="alert alert-danger">${data.message || 'Có lỗi xảy ra khi tải dữ liệu'}</div>`;
-                    }
-                }
-                
-                // Update active state in sidebar
-                document.querySelectorAll('.nav-link').forEach(link => {
-                    link.classList.remove('active');
-                    if (link.getAttribute('data-section') === section) {
-                        link.classList.add('active');
-                    }
-                });
-                
-                // Update URL without page reload
-                history.pushState({section: section}, '', `?section=${section}`);
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Có lỗi xảy ra khi tải nội dung');
-            } finally {
-                hideLoading();
-            }
-        }
+        // ... rest of your existing code ...
     </script>
 </body>
 </html> 

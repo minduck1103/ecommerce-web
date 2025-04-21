@@ -98,12 +98,18 @@ try {
         $stmt = $conn->prepare("UPDATE products SET status = CASE WHEN quantity > 0 THEN 1 ELSE 0 END WHERE id = ?");
         $stmt->execute([$id]);
 
+        // Lấy thông tin sản phẩm sau khi cập nhật
+        $stmt = $conn->prepare("SELECT * FROM products WHERE id = ?");
+        $stmt->execute([$id]);
+        $updatedProduct = $stmt->fetch(PDO::FETCH_ASSOC);
+
         // Xóa bất kỳ output nào đã được tạo
         ob_clean();
-
+        
         echo json_encode([
             'success' => true,
-            'message' => 'Cập nhật sản phẩm thành công'
+            'message' => 'Cập nhật sản phẩm thành công',
+            'product' => $updatedProduct
         ], JSON_UNESCAPED_UNICODE);
     } else {
         throw new Exception('Không thể cập nhật sản phẩm');
