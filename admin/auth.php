@@ -1,9 +1,18 @@
 <?php
-require_once __DIR__ . '/../config/session.php';
+require_once __DIR__ . '/../app/config/session.php';
+
+/**
+ * Function to check if current user is admin
+ */
+function isAdmin() {
+    return isset($_SESSION['admin_logged_in']) && 
+           $_SESSION['admin_logged_in'] === true && 
+           isset($_SESSION['role']) && 
+           $_SESSION['role'] === 'admin';
+}
 
 /**
  * Function to check admin authentication and redirect to login if needed
- * Uses isAdmin() from session.php
  */
 function checkAdminAuth() {
     if (!isAdmin()) {

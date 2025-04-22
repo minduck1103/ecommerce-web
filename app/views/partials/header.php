@@ -31,6 +31,8 @@
             border-bottom: 1px solid #eee;
             height: 80px;
             padding: 0;
+            display: flex;
+            align-items: center;
         }
 
         .navbar-brand {
@@ -39,10 +41,15 @@
             transform: translateX(-50%);
             margin: 0;
             padding: 0;
+            display: flex;
+            align-items: center;
+            height: 100%;
         }
 
         .navbar-brand img {
-            height: 40px;
+            height: 60px;
+            width: auto;
+            object-fit: contain;
         }
 
         .menu-btn {
@@ -128,6 +135,7 @@
         }
 
         .offcanvas-title {
+            font-size: 1.25rem;
             font-weight: 600;
         }
 
@@ -138,15 +146,31 @@
         }
 
         .nav-menu-links li a {
-            display: block;
-            padding: 0.75rem 1rem;
-            color: #000;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            color: #333;
             text-decoration: none;
             transition: all 0.3s ease;
+            font-weight: 500;
         }
 
         .nav-menu-links li a:hover {
             background-color: #f8f9fa;
+            color: #4CAF50;
+        }
+
+        .nav-menu-links li a i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background-color: #eee;
+            margin: 0.5rem 0;
         }
 
         .dropdown-menu {
@@ -182,160 +206,81 @@
 <body>
 
 <header>
-    <nav class="navbar">
-        <div class="container">
-            <!-- Menu Button -->
-            <button class="menu-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuOffcanvas">
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid px-4">
+            <button class="menu-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#navMenu">
                 <i class="fas fa-bars"></i>
             </button>
 
-            <!-- Logo -->
             <a class="navbar-brand" href="/shoppingcart">
-                <img src="/shoppingcart/public/images/logo.png" alt="Shopping Cart">
+                <img src="/shoppingcart/public/images/logo.jpg" alt="Logo">
             </a>
 
-            <!-- Right Icons -->
             <div class="right-icons">
-                <button class="icon-btn" id="searchBtn">
+                <button class="icon-btn" onclick="toggleSearch()">
                     <i class="fas fa-search"></i>
                 </button>
-                <?php if (isset($_SESSION['user_id'])): ?>
-                <div class="dropdown">
-                    <button class="icon-btn" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
-                        <li>
-                            <a class="dropdown-item" href="/shoppingcart/account">
-                                <i class="fas fa-user-circle"></i>
-                                Thông tin tài khoản
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="/shoppingcart/account/orders">
-                                <i class="fas fa-shopping-bag"></i>
-                                Đơn hàng của tôi
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="/shoppingcart/auth/logout">
-                                <i class="fas fa-sign-out-alt"></i>
-                                Đăng xuất
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                <?php else: ?>
-                <a href="/shoppingcart/auth/login" class="icon-btn">
-                    <i class="fas fa-user"></i>
-                </a>
-                <?php endif; ?>
                 <a href="/shoppingcart/cart" class="icon-btn">
                     <i class="fas fa-shopping-cart"></i>
-                    <span class="cart-count"><?php echo isset($_SESSION['cart']) ? array_sum($_SESSION['cart']) : 0; ?></span>
+                    <span class="cart-count">0</span>
                 </a>
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <div class="dropdown">
+                        <button class="icon-btn" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/shoppingcart/profile"><i class="fas fa-user-circle"></i> Tài khoản của tôi</a></li>
+                            <li><a class="dropdown-item" href="/shoppingcart/orders"><i class="fas fa-shopping-bag"></i> Đơn hàng của tôi</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/shoppingcart/logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                        </ul>
+                    </div>
+                <?php else: ?>
+                    <a href="/shoppingcart/login" class="icon-btn">
+                        <i class="fas fa-user"></i>
+                    </a>
+                <?php endif; ?>
             </div>
 
-            <!-- Search Container -->
-            <div class="search-container" id="searchContainer">
+            <div class="search-container">
                 <input type="text" class="search-input" placeholder="Tìm kiếm sản phẩm...">
-                <button class="close-search" id="closeSearch">
+                <button class="close-search" onclick="toggleSearch()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- Off-canvas Menu -->
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="menuOffcanvas">
+    <div class="offcanvas offcanvas-start" id="navMenu">
         <div class="offcanvas-header">
             <h5 class="offcanvas-title">Menu</h5>
             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
         </div>
         <div class="offcanvas-body">
             <ul class="nav-menu-links">
-                <li><a href="/shoppingcart">Trang chủ</a></li>
-                <li><a href="/shoppingcart/products">Sản phẩm</a></li>
-                <li><a href="/shoppingcart/about">Giới thiệu</a></li>
-                <li><a href="/shoppingcart/contact">Liên hệ</a></li>
+                <li><a href="/shoppingcart"><i class="fas fa-home"></i> Trang chủ</a></li>
+                <li><a href="/shoppingcart/products"><i class="fas fa-tshirt"></i> Sản phẩm</a></li>
+                <li><a href="/shoppingcart/about"><i class="fas fa-info-circle"></i> Về chúng tôi</a></li>
+                <li><a href="/shoppingcart/contact"><i class="fas fa-envelope"></i> Liên hệ</a></li>
             </ul>
         </div>
     </div>
 </header>
 
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom Cart JavaScript -->
+<script src="/shoppingcart/public/js/cart.js"></script>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Search functionality
-    const searchBtn = document.getElementById('searchBtn');
-    const closeSearch = document.getElementById('closeSearch');
-    const searchContainer = document.getElementById('searchContainer');
-    const searchInput = document.querySelector('.search-input');
-
-    searchBtn.addEventListener('click', function() {
-        searchContainer.classList.add('active');
-        searchInput.focus();
-    });
-
-    closeSearch.addEventListener('click', function() {
-        searchContainer.classList.remove('active');
-    });
-
-    // Close search on escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && searchContainer.classList.contains('active')) {
-            searchContainer.classList.remove('active');
-        }
-    });
-
-    // Search form submission
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            const searchTerm = this.value.trim();
-            if (searchTerm) {
-                window.location.href = `/shoppingcart/products/search?q=${encodeURIComponent(searchTerm)}`;
-            }
-        }
-    });
-});
-
-// Cart count update functionality
-function updateCartCount(count) {
-    const cartCount = document.querySelector('.cart-count');
-    if (cartCount) {
-        if (count > 0) {
-            cartCount.textContent = count;
-            cartCount.style.display = 'flex';
-        } else {
-            cartCount.style.display = 'none';
+    function toggleSearch() {
+        document.querySelector('.search-container').classList.toggle('active');
+        if (document.querySelector('.search-container').classList.contains('active')) {
+            document.querySelector('.search-input').focus();
         }
     }
-}
-
-// Function to fetch current cart count from server
-function fetchCartCount() {
-    fetch('/shoppingcart/cart/count')
-        .then(response => response.json())
-        .then(data => {
-            updateCartCount(data.count);
-        })
-        .catch(error => console.error('Error fetching cart count:', error));
-}
-
-// Update cart count every 5 seconds
-setInterval(fetchCartCount, 5000);
-
-// Custom event for instant cart updates
-document.addEventListener('cartUpdated', function(e) {
-    updateCartCount(e.detail.count);
-});
-
-// Function to trigger cart count update
-function triggerCartUpdate(count) {
-    document.dispatchEvent(new CustomEvent('cartUpdated', {
-        detail: { count: count }
-    }));
-}
 </script>
 </body>
 </html> 

@@ -1,0 +1,262 @@
+/* Sidebar */
+#wrapper {
+    overflow-x: hidden;
+}
+
+#sidebar-wrapper {
+    min-height: 100vh;
+    margin-left: -15rem;
+    transition: margin 0.25s ease-out;
+    width: 15rem;
+}
+
+#wrapper.toggled #sidebar-wrapper {
+    margin-left: 0;
+}
+
+#page-content-wrapper {
+    min-width: 100vw;
+}
+
+.sidebar-heading {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.list-group-item {
+    border: none;
+    padding: 0.75rem 1.25rem;
+}
+
+.list-group-item:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.list-group-item.active {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd;
+}
+
+/* Main Content */
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    padding: 1rem;
+}
+
+.table th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+/* Login Page */
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+}
+
+.login-card {
+    max-width: 400px;
+    width: 100%;
+    padding: 2rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border-radius: 0.5rem;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+    #sidebar-wrapper {
+        margin-left: 0;
+    }
+
+    #page-content-wrapper {
+        min-width: 0;
+        width: 100%;
+    }
+
+    #wrapper.toggled #sidebar-wrapper {
+        margin-left: -15rem;
+    }
+}
+
+/* Stats Cards */
+.card.bg-primary, .card.bg-success, .card.bg-info, .card.bg-warning {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.card-body h6 {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.card-body h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.card-body i {
+    opacity: 0.5;
+}
+
+/* Tables */
+.table {
+    margin-bottom: 0;
+}
+
+.table th, .table td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+.badge {
+    padding: 0.5em 0.75em;
+    font-weight: 500;
+}
+
+/* Forms */
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+/* Alerts */
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.sidebar {
+    min-height: 100vh;
+    background: #343a40;
+}
+
+.sidebar a {
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 15px;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.sidebar a:hover {
+    background: #495057;
+}
+
+.sidebar a.active {
+    background: #0d6efd;
+}
+
+.main-content {
+    padding: 20px;
+}
+
+.stat-card {
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card i {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.loading {
+    position: relative;
+    min-height: 200px;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
+}
+
+.loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 1001;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* DataTables customization */
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 1rem;
+}
+
+.table th {
+    background-color: #f8f9fa;
+}
+
+/* Modal customization */
+.modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+} 

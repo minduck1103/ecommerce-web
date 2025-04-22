@@ -3,13 +3,27 @@ require_once 'Model.php';
 
 class Product extends Model {
     public function getAllProducts() {
-        $query = "SELECT p.*, c.name as category_name 
+        $query = "SELECT p.id, p.name, p.price, p.quantity, p.description, p.image, p.status, p.created_at, 
+                         c.name as category_name, c.id as category_id
                  FROM products p 
                  LEFT JOIN categories c ON p.category_id = c.id 
-                 WHERE p.status = 'in-stock'";
+                 WHERE p.status = 'in-stock'
+                 ORDER BY p.created_at DESC";
+        
+        // Debug query
+        error_log("Products query: " . $query);
+        
         $stmt = $this->db->prepare($query);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Debug results
+        error_log("Products found: " . count($products));
+        if (count($products) > 0) {
+            error_log("Sample product data: " . print_r($products[0], true));
+        }
+        
+        return $products;
     }
 
     public function getProductById($id) {
@@ -115,26 +129,27 @@ class Product extends Model {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function filterProducts($category = null, $priceFrom = null, $priceTo = null, $sort = 'newest') {
+    public function filterProducts($categories = [], $priceFrom = null, $priceTo = null, $sort = 'newest') {
         $query = "SELECT p.*, c.name as category_name 
                  FROM products p 
                  LEFT JOIN categories c ON p.category_id = c.id 
                  WHERE 1=1";
         $params = [];
         
-        if ($category) {
-            $query .= " AND c.slug = :category";
-            $params[':category'] = $category;
+        if (!empty($categories)) {
+            $placeholders = str_repeat('?,', count($categories) - 1) . '?';
+            $query .= " AND c.slug IN ($placeholders)";
+            $params = array_merge($params, $categories);
         }
         
         if ($priceFrom !== null) {
-            $query .= " AND p.price >= :price_from";
-            $params[':price_from'] = $priceFrom;
+            $query .= " AND p.price >= ?";
+            $params[] = $priceFrom;
         }
         
         if ($priceTo !== null) {
-            $query .= " AND p.price <= :price_to";
-            $params[':price_to'] = $priceTo;
+            $query .= " AND p.price <= ?";
+            $params[] = $priceTo;
         }
         
         switch ($sort) {
@@ -149,10 +164,7 @@ class Product extends Model {
         }
         
         $stmt = $this->db->prepare($query);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key, $value);
-        }
-        $stmt->execute();
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 } 

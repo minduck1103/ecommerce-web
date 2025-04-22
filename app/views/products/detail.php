@@ -6,15 +6,17 @@
         <div class="col-lg-6">
             <div class="product-images">
                 <div class="main-image">
-                    <img src="/shoppingcart/uploads/products/<?= htmlspecialchars($product['image']) ?>" 
+                    <img src="/shoppingcart/public/uploads/products/<?= htmlspecialchars($product['image']) ?>" 
                          alt="<?= htmlspecialchars($product['name']) ?>" 
-                         id="mainImage">
+                         id="mainImage"
+                         onerror="this.src='/shoppingcart/public/images/default-product.jpg'">
                 </div>
                 <div class="thumbnail-images">
-                    <img src="/shoppingcart/uploads/products/<?= htmlspecialchars($product['image']) ?>" 
+                    <img src="/shoppingcart/public/uploads/products/<?= htmlspecialchars($product['image']) ?>" 
                          alt="Thumbnail 1" 
                          class="thumbnail active"
-                         onclick="changeMainImage(this)">
+                         onclick="changeMainImage(this)"
+                         onerror="this.src='/shoppingcart/public/images/default-product.jpg'">
                     <!-- Add more thumbnails here when you have multiple product images -->
                 </div>
             </div>

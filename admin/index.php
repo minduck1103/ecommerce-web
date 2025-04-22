@@ -1,23 +1,21 @@
 <?php
-require_once '../config/database.php';
-require_once '../config/session.php';
+session_start();
 
-// Get statistics
-$stats = [
-    'products' => $conn->query("SELECT COUNT(*) FROM products")->fetchColumn(),
-    'categories' => $conn->query("SELECT COUNT(*) FROM categories")->fetchColumn(),
-    'users' => $conn->query("SELECT COUNT(*) FROM users")->fetchColumn(),
-    'orders' => $conn->query("SELECT COUNT(*) FROM orders")->fetchColumn()
-];
+// Nếu đã đăng nhập, chuyển hướng đến dashboard
+if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
+    header('Location: dashboard.php');
+    exit;
+}
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShopCart Admin</title>
+    <title>Uni Clothing Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/admin.css" rel="stylesheet">
     <style>
         .hero {
             background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
@@ -41,11 +39,11 @@ $stats = [
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-white">
         <div class="container">
-            <a class="navbar-brand" href="#">ShopCart Admin</a>
+            <a class="navbar-brand text-dark text-bold" href="#">Uni Clothing</a>
             <a href="login.php" class="btn btn-primary">
-                <i class="fas fa-sign-in-alt me-2"></i>Admin Login
+                <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
             </a>
         </div>
     </nav>
@@ -53,8 +51,8 @@ $stats = [
     <!-- Hero Section -->
     <section class="hero">
         <div class="container text-center">
-            <h1 class="display-4 mb-4">Welcome to ShopCart Admin</h1>
-            <p class="lead">Powerful tools to manage your e-commerce platform</p>
+            <h1 class="display-4 mb-4">Chào mừng đến với Uni Clothing Admin</h1>
+            <p class="lead">Công cụ quản lý mạnh mẽ cho nền tảng thương mại điện tử của bạn</p>
         </div>
     </section>
 
@@ -66,8 +64,8 @@ $stats = [
                     <div class="card feature-card shadow h-100">
                         <div class="card-body text-center p-4">
                             <i class="fas fa-box feature-icon"></i>
-                            <h3>Product Management</h3>
-                            <p>Easily manage your product catalog, update prices, and control inventory.</p>
+                            <h3>Quản lý Sản phẩm</h3>
+                            <p>Dễ dàng quản lý danh mục sản phẩm, cập nhật giá và kiểm soát tồn kho.</p>
                         </div>
                     </div>
                 </div>
@@ -75,8 +73,8 @@ $stats = [
                     <div class="card feature-card shadow h-100">
                         <div class="card-body text-center p-4">
                             <i class="fas fa-shopping-cart feature-icon"></i>
-                            <h3>Order Processing</h3>
-                            <p>Track and manage orders, update order status, and handle customer requests.</p>
+                            <h3>Xử lý Đơn hàng</h3>
+                            <p>Theo dõi và quản lý đơn hàng, cập nhật trạng thái và xử lý yêu cầu khách hàng.</p>
                         </div>
                     </div>
                 </div>
@@ -84,8 +82,8 @@ $stats = [
                     <div class="card feature-card shadow h-100">
                         <div class="card-body text-center p-4">
                             <i class="fas fa-users feature-icon"></i>
-                            <h3>User Management</h3>
-                            <p>Manage user accounts, roles, and permissions with ease.</p>
+                            <h3>Quản lý Người dùng</h3>
+                            <p>Quản lý tài khoản người dùng, phân quyền và bảo mật thông tin.</p>
                         </div>
                     </div>
                 </div>
@@ -96,9 +94,9 @@ $stats = [
     <!-- Call to Action -->
     <section class="bg-light py-5">
         <div class="container text-center">
-            <h2 class="mb-4">Ready to get started?</h2>
+            <h2 class="mb-4">Sẵn sàng để bắt đầu?</h2>
             <a href="login.php" class="btn btn-primary btn-lg">
-                <i class="fas fa-sign-in-alt me-2"></i>Login as Admin
+                <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập ngay
             </a>
         </div>
     </section>

@@ -1,14 +1,41 @@
-# Enable rewrite engine
 RewriteEngine On
 RewriteBase /shoppingcart/
 
-# Allow direct access to files
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_FILENAME} !-f
+# Allow direct access to public directory
+RewriteRule ^public/ - [L]
 
-# Route all other requests through index.php
+# Nếu file/thư mục không tồn tại
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Chuyển hướng các request API
+RewriteRule ^api/(.*)$ app/api/$1 [L,QSA]
+
+# Rewrite for cart/checkout
+RewriteRule ^cart/checkout/?$ app/views/cart/checkout.php [L]
+
+# Rewrite for order success page
+RewriteRule ^orders/success/?$ app/views/orders/success.php [L]
+
+# Handle other routes
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
 
-# Ensure PHP errors are displayed
+# Cho phép hiển thị lỗi PHP
 php_flag display_errors on
-php_value error_reporting E_ALL 
+php_value error_reporting E_ALL
+
+# Thiết lập charset mặc định
+AddDefaultCharset UTF-8
+
+# Bảo vệ file .htaccess
+<Files .htaccess>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Cho phép rewrite
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+</IfModule> 

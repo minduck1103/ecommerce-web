@@ -1,64 +1,45 @@
 <?php
-// Include config file
-require_once __DIR__ . '/app/config/config.php';
+session_start();
+require_once 'app/config/database.php';
 
-// Định nghĩa đường dẫn gốc
-define('ROOT_PATH', __DIR__);
-define('APP_PATH', ROOT_PATH . '/app');
+// Lấy URL path
+$request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$base_path = '/shoppingcart';
 
-// Enable error reporting
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Loại bỏ base path từ URL
+if (strpos($request_uri, $base_path) === 0) {
+    $request_uri = substr($request_uri, strlen($base_path));
+}
 
-// Autoload các class
-spl_autoload_register(function ($class) {
-    $paths = [
-        APP_PATH . '/controllers/' . $class . '.php',
-        APP_PATH . '/models/' . $class . '.php'
-    ];
-    
-    foreach ($paths as $path) {
-        if (file_exists($path)) {
-            require_once $path;
-            return;
-        }
+// Định nghĩa routes
+$routes = [
+    '/' => 'app/views/home/index.php',
+    '/products' => 'app/views/products/index.php',
+    '/cart' => 'app/views/cart/index.php',
+    '/account/orders' => 'app/views/account/orders.php',
+    '/login' => 'app/views/auth/login.php',
+    '/register' => 'app/views/auth/register.php',
+    '/logout' => 'app/views/auth/logout.php'
+];
+
+// Kiểm tra route tồn tại
+if (isset($routes[$request_uri])) {
+    $file_path = __DIR__ . '/' . $routes[$request_uri];
+    if (file_exists($file_path)) {
+        require $file_path;
+        exit;
     }
-});
-
-// Lấy URL từ query string
-$url = isset($_GET['url']) ? $_GET['url'] : '';
-$url = rtrim($url, '/');
-$url = filter_var($url, FILTER_SANITIZE_URL);
-$url = explode('/', $url);
-
-// Xác định controller và action
-$controller = !empty($url[0]) ? $url[0] : 'home';
-$action = !empty($url[1]) ? $url[1] : 'index';
-$params = array_slice($url, 2);
-
-// Format tên controller
-$controllerName = ucfirst($controller) . 'Controller';
-$controllerFile = APP_PATH . '/controllers/' . $controllerName . '.php';
-
-// Try singular version if plural file doesn't exist
-if (!file_exists($controllerFile) && substr($controller, -1) === 's') {
-    $singularController = rtrim($controller, 's');
-    $controllerName = ucfirst($singularController) . 'Controller';
-    $controllerFile = APP_PATH . '/controllers/' . $controllerName . '.php';
 }
 
-// Kiểm tra và gọi controller
-if (!file_exists($controllerFile)) {
-    require_once APP_PATH . '/views/404.php';
-    exit();
+// Kiểm tra API routes
+if (strpos($request_uri, '/api/') === 0) {
+    $api_file = __DIR__ . '/app' . $request_uri . '.php';
+    if (file_exists($api_file)) {
+        require $api_file;
+        exit;
+    }
 }
 
-require_once $controllerFile;
-$controllerInstance = new $controllerName();
-
-if (!method_exists($controllerInstance, $action)) {
-    require_once APP_PATH . '/views/404.php';
-    exit();
-}
-
-call_user_func_array([$controllerInstance, $action], $params); 
+// Nếu không tìm thấy route, hiển thị trang 404
+http_response_code(404);
+require 'app/views/error/404.php'; 

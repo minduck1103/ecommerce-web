@@ -1,47 +1,17 @@
-<footer class="footer">
+<footer class="bg-light py-4 mt-5">
     <div class="container">
-        <div class="row g-4">
-            <div class="col-lg-4">
-                <h5 class="footer-title">Shopping Cart</h5>
-                <p class="footer-description">Chúng tôi luôn trân trọng và mong đợi nhận được mọi ý kiến đóng góp từ khách hàng để có thể nâng cấp trải nghiệm dịch vụ và sản phẩm tốt hơn nữa.</p>
-                <div class="social-links">
-                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-tiktok"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
-                </div>
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Shopping Cart</h5>
+                <p class="mb-0">© 2024 Shopping Cart. All rights reserved.</p>
             </div>
-            <div class="col-lg-2">
-                <h5 class="footer-title">Về chúng tôi</h5>
-                <ul class="footer-links">
-                    <li><a href="#">Giới thiệu</a></li>
-                    <li><a href="#">Liên hệ</a></li>
-                    <li><a href="#">Tuyển dụng</a></li>
-                    <li><a href="#">Tin tức</a></li>
-                </ul>
+            <div class="col-md-6 text-md-end">
+                <h5>Liên hệ</h5>
+                <p class="mb-0">
+                    Email: support@shoppingcart.com<br>
+                    Phone: (84) 123-456-789
+                </p>
             </div>
-            <div class="col-lg-2">
-                <h5 class="footer-title">Hỗ trợ</h5>
-                <ul class="footer-links">
-                    <li><a href="#">FAQs</a></li>
-                    <li><a href="#">Bảo mật</a></li>
-                    <li><a href="#">Điều khoản</a></li>
-                    <li><a href="#">Tra cứu đơn hàng</a></li>
-                </ul>
-            </div>
-            <div class="col-lg-4">
-                <h5 class="footer-title">Đăng ký nhận tin</h5>
-                <p class="footer-description">Nhận thông tin sản phẩm mới nhất, tin khuyến mãi và nhiều hơn nữa.</p>
-                <form class="footer-form">
-                    <div class="input-group">
-                        <input type="email" class="form-control" placeholder="Email của bạn">
-                        <button class="btn btn-dark" type="submit">Đăng ký</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p class="mb-0">&copy; <?= date('Y') ?> Shopping Cart. All rights reserved.</p>
         </div>
     </div>
 </footer>

@@ -20,13 +20,13 @@ class OrderController extends BaseController {
             header('Location: /shoppingcart/auth/login');
             exit;
         }
-
+        
         $cartItems = $this->cartModel->getCartItems($_SESSION['user_id']);
         $subtotal = 0;
         foreach ($cartItems as $item) {
             $subtotal += $item['price'] * $item['quantity'];
         }
-
+        
         $shipping = 30000; // Phí vận chuyển cố định
         $total = $subtotal + $shipping;
 

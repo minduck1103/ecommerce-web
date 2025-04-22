@@ -1,21 +1,90 @@
 <?php
-require_once '../config/database.php';
-require_once '../config/session.php';
+// Enable error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Start session and include required files
+session_start();
+require_once __DIR__ . '/../app/config/database.php';
 require_once 'auth.php';
 
-// Check admin authentication
-checkAdminAuth();
+// Check admin authentication first
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    header("Location: login.php");
+    exit;
+}
+
+// Initialize database connection
+$database = new Database();
+$conn = $database->getConnection();
+
+// Debug information
+echo "<!-- Debug Info -->";
+echo "<div style='display:none'>";
+echo "Session: ";
+print_r($_SESSION);
+echo "<br>Current Directory: " . __DIR__;
+echo "<br>Included Files: ";
+print_r(get_included_files());
+echo "</div>";
+
+// Handle login form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = $_POST['username'] ?? '';
+    $password = $_POST['password'] ?? '';
+
+    try {
+        // Get user from database
+        $stmt = $conn->prepare("SELECT * FROM users WHERE email = ? AND role = 'admin' LIMIT 1");
+        $stmt->execute([$username]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user && password_verify($password, $user['password'])) {
+            // Set session variables
+            $_SESSION['admin_logged_in'] = true;
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['email'];
+            $_SESSION['role'] = $user['role'];
+            
+            // Redirect to dashboard
+            header("Location: dashboard.php");
+            exit;
+        } else {
+            $_SESSION['login_error'] = 'Email hoặc mật khẩu không đúng';
+            header("Location: login.php");
+            exit;
+        }
+    } catch (Exception $e) {
+        $_SESSION['login_error'] = 'Có lỗi xảy ra: ' . $e->getMessage();
+        header("Location: login.php");
+        exit;
+    }
+}
 
 // Get statistics
-$stats = [
-    'products' => $conn->query("SELECT COUNT(*) FROM products")->fetchColumn(),
-    'categories' => $conn->query("SELECT COUNT(*) FROM categories")->fetchColumn(),
-    'users' => $conn->query("SELECT COUNT(*) FROM users")->fetchColumn(),
-    'orders' => $conn->query("SELECT COUNT(*) FROM orders")->fetchColumn()
-];
+try {
+    $stats = [
+        'products' => $conn->query("SELECT COUNT(*) FROM products")->fetchColumn(),
+        'categories' => $conn->query("SELECT COUNT(*) FROM categories")->fetchColumn(),
+        'users' => $conn->query("SELECT COUNT(*) FROM users")->fetchColumn(),
+        'orders' => $conn->query("SELECT COUNT(*) FROM orders")->fetchColumn()
+    ];
+} catch (PDOException $e) {
+    echo "<!-- Database Error: " . $e->getMessage() . " -->";
+    $stats = [
+        'products' => 0,
+        'categories' => 0,
+        'users' => 0,
+        'orders' => 0
+    ];
+}
 
 // Get categories for product form
-$categories = $conn->query("SELECT id, name FROM categories ORDER BY name")->fetchAll();
+try {
+    $categories = $conn->query("SELECT id, name FROM categories ORDER BY name")->fetchAll();
+} catch (PDOException $e) {
+    $categories = [];
+}
 
 // Lưu thông tin session vào biến JavaScript
 $sessionData = [
@@ -33,6 +102,7 @@ $sessionData = [
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="assets/css/admin.css">
     <style>
         .sidebar {
             min-height: 100vh;
@@ -133,112 +203,31 @@ $sessionData = [
                 <div class="p-3 text-white">
                     <h4>Admin Panel</h4>
                 </div>
-                <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                <a href="#" class="nav-link active" data-section="dashboard">
                     <i class="fas fa-tachometer-alt me-2"></i> Dashboard
                 </a>
-                <a href="#products" class="nav-link" data-section="products">
+                <a href="#" class="nav-link" data-section="products">
                     <i class="fas fa-box me-2"></i> Quản lý sản phẩm
                 </a>
-                <a href="#categories" class="nav-link" data-section="categories">
+                <a href="#" class="nav-link" data-section="categories">
                     <i class="fas fa-tags me-2"></i> Quản lý danh mục
                 </a>
-                <a href="#users" class="nav-link" data-section="users">
+                <a href="#" class="nav-link" data-section="users">
                     <i class="fas fa-users me-2"></i> Quản lý người dùng
                 </a>
-                <a href="#orders" class="nav-link" data-section="orders">
+                <a href="#" class="nav-link" data-section="orders">
                     <i class="fas fa-shopping-cart me-2"></i> Quản lý đơn hàng
                 </a>
-                <a href="../logout.php">
+                <a href="logout.php">
                     <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
                 </a>
             </div>
 
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10 main-content">
-                <!-- Dashboard Section -->
-                <div id="dashboard" class="section active">
-                    <h2 class="mb-4">Dashboard</h2>
-                    
-                    <!-- Statistics Cards -->
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="stat-card bg-primary">
-                                <i class="fas fa-box"></i>
-                                <h3><?php echo $stats['products']; ?></h3>
-                                <p>Sản phẩm</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="stat-card bg-success">
-                                <i class="fas fa-tags"></i>
-                                <h3><?php echo $stats['categories']; ?></h3>
-                                <p>Danh mục</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="stat-card bg-info">
-                                <i class="fas fa-users"></i>
-                                <h3><?php echo $stats['users']; ?></h3>
-                                <p>Người dùng</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="stat-card bg-warning">
-                                <i class="fas fa-shopping-cart"></i>
-                                <h3><?php echo $stats['orders']; ?></h3>
-                                <p>Đơn hàng</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Orders -->
-                    <div class="card mt-4">
-                        <div class="card-header">
-                            <h5 class="mb-0">Đơn hàng gần đây</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Mã đơn</th>
-                                            <th>Khách hàng</th>
-                                            <th>Tổng tiền</th>
-                                            <th>Trạng thái</th>
-                                            <th>Ngày đặt</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $stmt = $conn->query("SELECT o.*, u.email FROM orders o JOIN users u ON o.user_id = u.id ORDER BY o.created_at DESC LIMIT 5");
-                                        while ($order = $stmt->fetch()) {
-                                            echo "<tr>";
-                                            echo "<td>#" . $order['id'] . "</td>";
-                                            echo "<td>" . htmlspecialchars($order['email']) . "</td>";
-                                            echo "<td>" . number_format($order['total_amount'], 0, ',', '.') . "đ</td>";
-                                            echo "<td>" . htmlspecialchars($order['status']) . "</td>";
-                                            echo "<td>" . date('d/m/Y H:i', strtotime($order['created_at'])) . "</td>";
-                                            echo "</tr>";
-                                        }
-                                        ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+                <div id="content">
+                    <!-- Content will be loaded here -->
                 </div>
-
-                <!-- Products Section -->
-                <div id="products" class="section"></div>
-
-                <!-- Categories Section -->
-                <div id="categories" class="section"></div>
-
-                <!-- Users Section -->
-                <div id="users" class="section"></div>
-
-                <!-- Orders Section -->
-                <div id="orders" class="section"></div>
             </div>
         </div>
     </div>
@@ -438,9 +427,9 @@ $sessionData = [
                         </div>
                         <div class="mb-3">
                             <label for="userRole" class="form-label">Vai trò</label>
-                            <select class="form-select" id="userRole" name="is_admin">
-                                <option value="0">Người dùng</option>
-                                <option value="1">Admin</option>
+                            <select class="form-select" id="userRole" name="role">
+                                <option value="user">Người dùng</option>
+                                <option value="admin">Admin</option>
                             </select>
                         </div>
                     </form>
@@ -478,9 +467,9 @@ $sessionData = [
                         </div>
                         <div class="mb-3">
                             <label for="editUserRole" class="form-label">Vai trò</label>
-                            <select class="form-select" id="editUserRole" name="is_admin">
-                                <option value="0">Người dùng</option>
-                                <option value="1">Admin</option>
+                            <select class="form-select" id="editUserRole" name="role">
+                                <option value="user">Người dùng</option>
+                                <option value="admin">Admin</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -528,425 +517,59 @@ $sessionData = [
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script>
-        // Lưu thông tin session vào biến JavaScript
-        const sessionData = <?php echo json_encode($sessionData); ?>;
-        
-        // Kiểm tra session
-        function checkSession() {
-            if (!sessionData.user_id || sessionData.role !== 'admin') {
-                console.error('Session không hợp lệ, chuyển hướng đến trang đăng nhập');
-                window.location.href = '../login.php';
-                return false;
-            }
-            return true;
-        }
-        
-        // Global state
-        let currentSection = 'dashboard';
-        let isLoading = false;
-        let dataTables = {};
-        let lastLoadTime = {};
-        let loadAttempts = {};
+    document.addEventListener('DOMContentLoaded', function() {
+        const content = document.getElementById('content');
+        const navLinks = document.querySelectorAll('.nav-link');
 
-        // Function to show/hide loading state
-        function setLoadingState(sectionElement, loading) {
-            if (loading) {
-                sectionElement.classList.add('section-loading');
-            } else {
-                sectionElement.classList.remove('section-loading');
-            }
-        }
-
-        // Function to switch sections
-        function switchSection(sectionId) {
-            // Ẩn tất cả các section
-            document.querySelectorAll('.section').forEach(s => {
-                s.classList.remove('active');
-                setTimeout(() => {
-                    s.style.display = 'none';
-                }, 300);
-            });
-            
-            // Hiển thị section được chọn
-            const selectedSection = document.getElementById(sectionId);
-            if (selectedSection) {
-                selectedSection.style.display = 'block';
-                // Đợi một chút để đảm bảo display: block đã được áp dụng
-                setTimeout(() => {
-                    selectedSection.classList.add('active');
-                }, 50);
-            }
-            
-            // Cập nhật active state cho menu
-            document.querySelectorAll('.nav-link').forEach(link => {
-                if (link.getAttribute('data-section') === sectionId) {
-                    link.classList.add('active');
-                } else {
-                    link.classList.remove('active');
-                }
-            });
+        // Function to load content
+        function loadContent(section) {
+            fetch(`sections/${section}.php`)
+                .then(response => response.text())
+                .then(html => {
+                    content.innerHTML = html;
+                    // Re-initialize any scripts
+                    const scripts = content.getElementsByTagName('script');
+                    Array.from(scripts).forEach(script => {
+                        const newScript = document.createElement('script');
+                        Array.from(script.attributes).forEach(attr => {
+                            newScript.setAttribute(attr.name, attr.value);
+                        });
+                        newScript.textContent = script.textContent;
+                        script.parentNode.replaceChild(newScript, script);
+                    });
+                })
+                .catch(error => {
+                    content.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h4>Error loading content</h4>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                });
         }
 
-        // Function to initialize DataTables
-        function initializeDataTables() {
-            // Hủy các DataTable cũ nếu có
-            Object.values(dataTables).forEach(table => {
-                if (table) {
-                    table.destroy();
-                }
+        // Add click event listeners to nav links
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Remove active class from all links
+                navLinks.forEach(l => l.classList.remove('active'));
+                // Add active class to clicked link
+                link.classList.add('active');
+                // Load content
+                const section = link.getAttribute('data-section');
+                loadContent(section);
             });
-            dataTables = {};
-
-            // Khởi tạo DataTable cho bảng sản phẩm nếu có
-            const productsTable = document.getElementById('productsTable');
-            if (productsTable) {
-                dataTables.products = new DataTable(productsTable, {
-                    language: {
-                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
-                    },
-                    order: [[0, 'desc']],
-                    pageLength: 10,
-                    responsive: true
-                });
-            }
-
-            // Khởi tạo DataTable cho bảng danh mục nếu có
-            const categoriesTable = document.getElementById('categoriesTable');
-            if (categoriesTable) {
-                dataTables.categories = new DataTable(categoriesTable, {
-                    language: {
-                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
-                    },
-                    order: [[0, 'desc']],
-                    pageLength: 10,
-                    responsive: true
-                });
-            }
-
-            // Khởi tạo DataTable cho bảng người dùng nếu có
-            const usersTable = document.getElementById('usersTable');
-            if (usersTable) {
-                dataTables.users = new DataTable(usersTable, {
-                    language: {
-                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
-                    },
-                    order: [[0, 'desc']],
-                    pageLength: 10,
-                    responsive: true
-                });
-            }
-
-            // Khởi tạo DataTable cho bảng đơn hàng nếu có
-            const ordersTable = document.getElementById('ordersTable');
-            if (ordersTable) {
-                dataTables.orders = new DataTable(ordersTable, {
-                    language: {
-                        url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
-                    },
-                    order: [[0, 'desc']],
-                    pageLength: 10,
-                    responsive: true
-                });
-            }
-        }
-
-        // Function to load section content
-        async function loadSection(section) {
-            // Kiểm tra session trước khi tải
-            if (!checkSession()) return;
-            
-            // Kiểm tra nếu đang tải
-            if (isLoading) {
-                console.log('Đang tải section khác, bỏ qua yêu cầu tải section:', section);
-                return;
-            }
-            
-            // Kiểm tra thời gian tải lại
-            const now = Date.now();
-            if (lastLoadTime[section] && (now - lastLoadTime[section] < 2000)) {
-                console.log('Tải lại quá nhanh, bỏ qua yêu cầu tải section:', section);
-                return;
-            }
-            
-            // Kiểm tra số lần tải
-            if (loadAttempts[section] && loadAttempts[section] > 3) {
-                console.log('Quá nhiều lần tải, bỏ qua yêu cầu tải section:', section);
-                return;
-            }
-            
-            try {
-                currentSection = section;
-                switchSection(section);
-                
-                // If dashboard, no need to load data
-                if (section === 'dashboard') {
-                    return;
-                }
-
-                const selectedSection = document.getElementById(section);
-                if (!selectedSection) return;
-
-                isLoading = true;
-                setLoadingState(selectedSection, true);
-                
-                // Cập nhật thời gian tải và số lần tải
-                lastLoadTime[section] = now;
-                loadAttempts[section] = (loadAttempts[section] || 0) + 1;
-                
-                const response = await fetch(`sections/${section}.php`, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache'
-                    },
-                    credentials: 'same-origin' // Thêm credentials để gửi cookies
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.success && currentSection === section) { // Check if section hasn't changed
-                    selectedSection.innerHTML = data.html;
-                    
-                    // Khởi tạo DataTables sau khi nội dung được tải
-                    setTimeout(() => {
-                        initializeDataTables();
-                    }, 100);
-                    
-                    // Reset số lần tải sau khi tải thành công
-                    loadAttempts[section] = 0;
-                } else if (!data.success) {
-                    throw new Error(data.message || 'Có lỗi xảy ra khi tải dữ liệu');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                const errorMessage = error.message || 'Có lỗi xảy ra khi tải dữ liệu';
-                showAlert('danger', errorMessage);
-                
-                const selectedSection = document.getElementById(section);
-                if (selectedSection && currentSection === section) {
-                    selectedSection.innerHTML = `
-                        <div class="alert alert-danger" role="alert">
-                            ${errorMessage}
-                        </div>`;
-                }
-            } finally {
-                isLoading = false;
-                const selectedSection = document.getElementById(section);
-                if (selectedSection) {
-                    setLoadingState(selectedSection, false);
-                }
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Kiểm tra session khi trang tải
-            if (!checkSession()) return;
-            
-            // Khởi tạo Bootstrap tooltips và popovers
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-            
-            const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-            popoverTriggerList.map(function (popoverTriggerEl) {
-                return new bootstrap.Popover(popoverTriggerEl);
-            });
-            
-            // Xử lý sự kiện click cho menu
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const section = this.getAttribute('data-section');
-                    if (section) {
-                        window.location.hash = section;
-                        loadSection(section);
-                    }
-                });
-            });
-            
-            // Xử lý hash URL khi load trang
-            const hash = window.location.hash.substring(1);
-            const defaultSection = hash || 'dashboard';
-            loadSection(defaultSection);
-            
-            // Xử lý sự kiện hashchange
-            window.addEventListener('hashchange', function() {
-                const newSection = window.location.hash.substring(1) || 'dashboard';
-                if (newSection !== currentSection) {
-                    loadSection(newSection);
-                }
-            });
-            
-            // Thêm event listener cho modal thêm sản phẩm
-            const addProductModal = document.getElementById('addProductModal');
-            if (addProductModal) {
-                addProductModal.addEventListener('show.bs.modal', async function () {
-                    try {
-                        const response = await fetch('sections/get_categories.php');
-                        const data = await response.json();
-                        if (data.success) {
-                            const select = document.getElementById('category_id');
-                            select.innerHTML = '<option value="">Chọn danh mục</option>';
-                            select.innerHTML += data.categories.map(category => 
-                                `<option value="${category.id}">${category.name}</option>`
-                            ).join('');
-                        }
-                    } catch (error) {
-                        console.error('Error loading categories:', error);
-                    }
-                });
-            }
         });
 
-        // Function to show alert messages
-        function showAlert(type, message) {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
-            alertDiv.setAttribute('role', 'alert');
-            alertDiv.style.zIndex = '9999';
-            alertDiv.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            document.body.appendChild(alertDiv);
-            
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 5000);
-        }
-
-        // Cập nhật các hàm xử lý sản phẩm
-        async function saveProduct() {
-            // Kiểm tra session trước khi thực hiện
-            if (!checkSession()) return;
-            
-            const form = document.getElementById('addProductForm');
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-
-            const formData = new FormData(form);
-            try {
-                const response = await fetch('actions/add_product.php', {
-                    method: 'POST',
-                    body: formData,
-                    credentials: 'same-origin' // Thêm credentials để gửi cookies
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const result = await response.json();
-                if (result.success) {
-                    // Đóng modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
-                    if (modal) {
-                        modal.hide();
-                    } else {
-                        document.getElementById('addProductModal').style.display = 'none';
-                        document.querySelector('.modal-backdrop').remove();
-                        document.body.classList.remove('modal-open');
-                    }
-
-                    // Reset form
-                    form.reset();
-
-                    // Hiển thị thông báo thành công
-                    showAlert('success', 'Thêm sản phẩm thành công!');
-
-                    // Tải lại danh sách sản phẩm
-                    await loadSection('products');
-                } else {
-                    showAlert('danger', result.message || 'Có lỗi xảy ra khi thêm sản phẩm');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('danger', 'Có lỗi xảy ra khi thêm sản phẩm: ' + error.message);
-            }
-        }
-
-        async function updateProduct() {
-            // Kiểm tra session trước khi thực hiện
-            if (!checkSession()) return;
-            
-            const form = document.getElementById('editProductForm');
-            const formData = new FormData(form);
-
-            try {
-                const response = await fetch('actions/update_product.php', {
-                    method: 'POST',
-                    body: formData,
-                    credentials: 'same-origin' // Thêm credentials để gửi cookies
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    // Đóng modal
-                    const modal = document.getElementById('editProductModal');
-                    const modalInstance = bootstrap.Modal.getInstance(modal);
-                    modalInstance.hide();
-                    
-                    // Reset form
-                    form.reset();
-                    
-                    // Hiển thị thông báo thành công
-                    showAlert('success', 'Cập nhật sản phẩm thành công!');
-                    
-                    // Tải lại danh sách sản phẩm
-                    await loadSection('products');
-                } else {
-                    throw new Error(data.message || 'Không thể cập nhật sản phẩm');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('danger', error.message || 'Có lỗi xảy ra khi cập nhật sản phẩm');
-            }
-        }
-
-        async function deleteProduct(productId) {
-            // Kiểm tra session trước khi thực hiện
-            if (!checkSession()) return;
-            
-            if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-                return;
-            }
-
-            try {
-                const response = await fetch('actions/delete_product.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ id: productId }),
-                    credentials: 'same-origin' // Thêm credentials để gửi cookies
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    showAlert('success', 'Xóa sản phẩm thành công');
-                    await loadSection('products');
-                } else {
-                    throw new Error(data.message || 'Không thể xóa sản phẩm');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('danger', error.message || 'Có lỗi xảy ra khi xóa sản phẩm');
-            }
-        }
-
-        // ... rest of your existing code ...
+        // Load dashboard by default
+        loadContent('dashboard');
+    });
     </script>
 </body>
 </html> 

@@ -53,12 +53,12 @@ class ProductController extends BaseController {
             return;
         }
         
-        $category = $_GET['category'] ?? null;
+        $categories = isset($_GET['categories']) ? explode(',', $_GET['categories']) : [];
         $priceFrom = isset($_GET['price_from']) ? (float)$_GET['price_from'] : null;
         $priceTo = isset($_GET['price_to']) ? (float)$_GET['price_to'] : null;
         $sort = $_GET['sort'] ?? 'newest';
         
-        $products = $this->productModel->filterProducts($category, $priceFrom, $priceTo, $sort);
+        $products = $this->productModel->filterProducts($categories, $priceFrom, $priceTo, $sort);
         
         $this->json([
             'success' => true,
