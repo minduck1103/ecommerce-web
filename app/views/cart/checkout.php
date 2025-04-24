@@ -145,7 +145,7 @@ try {
         }
 
         .section-title i {
-            color: var(--primary-color);
+            color: #666;
             font-size: 1.35rem;
         }
 
@@ -395,10 +395,190 @@ try {
                 font-size: 1rem;
             }
         }
+
+        .shipping-method,
+        .payment-method {
+            padding: 1.25rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .shipping-method:hover,
+        .payment-method:hover {
+            border-color: #666;
+            background-color: #f8f9fa;
+        }
+
+        .shipping-method.selected,
+        .payment-method.selected {
+            border-color: #666;
+            background-color: #f8f9fa;
+        }
+
+        .method-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .method-icon i {
+            font-size: 1.5rem;
+            color: #666;
+        }
+
+        .method-icon img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .method-details {
+            flex: 1;
+        }
+
+        .method-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+
+        .method-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .method-price {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .delivery-time {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 0.5rem;
+        }
+
+        .payment-icons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .payment-icons i {
+            font-size: 2rem;
+            color: #666;
+        }
+
+        .payment-icon {
+            height: 24px;
+            width: auto;
+        }
+
+        /* Style cho modal thành công */
+        #orderSuccessModal .modal-content {
+            border: none;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        #orderSuccessModal .success-icon {
+            font-size: 4rem;
+            color: var(--success-color);
+            animation: scaleIn 0.5s ease;
+        }
+
+        #orderSuccessModal .modal-title {
+            color: var(--text-color);
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        #orderSuccessModal .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        #orderSuccessModal .btn-outline-secondary {
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        #orderSuccessModal .btn-outline-secondary:hover {
+            background-color: var(--border-color);
+            border-color: var(--border-color);
+            color: var(--text-color);
+        }
+
+        #orderSuccessModal .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), rgb(169, 177, 183));
+            border: none;
+        }
+
+        #orderSuccessModal .btn-primary:hover {
+            background: linear-gradient(135deg, rgb(83, 158, 163), var(--primary-color));
+            transform: translateY(-2px);
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="toast-container"></div>
+
+    <!-- Modal thông báo đặt hàng thành công -->
+    <div class="modal fade" id="orderSuccessModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="orderSuccessModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center p-4">
+                    <div class="success-icon mb-4">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="modal-title mb-3">Đặt hàng thành công!</h3>
+                    <p class="text-muted mb-4">Cảm ơn bạn đã mua sắm tại Fashion Shop</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <button type="button" class="btn btn-outline-secondary px-4" onclick="window.location.href='/shoppingcart/products'">
+                            <i class="fas fa-shopping-bag me-2"></i>Tiếp tục mua sắm
+                        </button>
+                        <button type="button" class="btn btn-primary px-4" onclick="window.location.href='/shoppingcart/account/orders'">
+                            <i class="fas fa-box me-2"></i>Xem đơn hàng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php include __DIR__ . '/../partials/header.php'; ?>
 
     <div class="checkout-container">
@@ -413,7 +593,9 @@ try {
         <?php else: ?>
         <div class="row">
                 <div class="col-md-8">
-                    <form id="checkoutForm" method="POST" action="/shoppingcart/api/orders/create" onsubmit="return handleSubmit(event)">
+                    <form id="checkoutForm" action="/shoppingcart/api/orders/create.php" method="POST">
+                        <input type="hidden" name="user_id" value="<?php echo $_SESSION['user_id']; ?>">
+                        <input type="hidden" name="total_amount" value="<?php echo $final_total; ?>">
                         <div class="checkout-section">
                             <div class="section-title">
                                 <i class="fas fa-user"></i>
@@ -447,37 +629,113 @@ try {
                             <div class="section-title">
                                 <i class="fas fa-truck"></i>
                                 Phương thức vận chuyển
-                        </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="shipping_method" id="standard_shipping" value="standard" checked>
-                                <label class="form-check-label" for="standard_shipping">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="fas fa-truck text-primary"></i>
-                                        <div>
-                                            <div class="fw-bold">Giao hàng tiêu chuẩn</div>
-                                            <div class="text-muted small">Nhận hàng trong 2-3 ngày</div>
-                        </div>
-                        </div>
-                                </label>
+                            </div>
+                            <div class="shipping-options">
+                                <div class="shipping-method selected" onclick="selectShipping(this, 'standard')">
+                                    <input type="radio" name="shipping_method" value="standard" checked>
+                                    <div class="method-icon">
+                                        <i class="fas fa-truck"></i>
+                                    </div>
+                                    <div class="method-details">
+                                        <div class="method-title">Giao hàng tiêu chuẩn</div>
+                                        <p class="method-description">Giao hàng trong 3-5 ngày</p>
+                                        <div class="delivery-time">Nhận hàng dự kiến: 23-25/03/2024</div>
+                                    </div>
+                                    <div class="method-price">30.000₫</div>
+                                </div>
+
+                                <div class="shipping-method" onclick="selectShipping(this, 'express')">
+                                    <input type="radio" name="shipping_method" value="express">
+                                    <div class="method-icon">
+                                        <i class="fas fa-shipping-fast"></i>
+                                    </div>
+                                    <div class="method-details">
+                                        <div class="method-title">Giao hàng nhanh</div>
+                                        <p class="method-description">Giao hàng trong 1-2 ngày</p>
+                                        <div class="delivery-time">Nhận hàng dự kiến: 21-22/03/2024</div>
+                                    </div>
+                                    <div class="method-price">45.000₫</div>
+                                </div>
+
+                                <div class="shipping-method" onclick="selectShipping(this, 'same_day')">
+                                    <input type="radio" name="shipping_method" value="same_day">
+                                    <div class="method-icon">
+                                        <i class="fas fa-motorcycle"></i>
+                                    </div>
+                                    <div class="method-details">
+                                        <div class="method-title">Giao hàng trong ngày</div>
+                                        <p class="method-description">Nhận hàng trong 2-6 giờ</p>
+                                        <div class="delivery-time">Nhận hàng dự kiến: Hôm nay</div>
+                                    </div>
+                                    <div class="method-price">70.000₫</div>
+                                </div>
                             </div>
                         </div>
 
                         <div class="checkout-section">
                             <div class="section-title">
-                                <i class="fas fa-money-bill"></i>
+                                <i class="fas fa-credit-card"></i>
                                 Phương thức thanh toán
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="payment_method" id="cod" value="cod" checked>
-                                <label class="form-check-label" for="cod">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="fas fa-money-bill-wave text-success"></i>
-                                        <div>
-                                            <div class="fw-bold">Thanh toán khi nhận hàng (COD)</div>
-                                            <div class="text-muted small">Thanh toán bằng tiền mặt khi nhận hàng</div>
+                            <div class="payment-options">
+                                <div class="payment-method selected" onclick="selectPayment(this, 'cod')">
+                                    <input type="radio" name="payment_method" value="cod" checked>
+                                    <div class="method-icon">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </div>
+                                    <div class="method-details">
+                                        <div class="method-title">Thanh toán khi nhận hàng (COD)</div>
+                                        <p class="method-description">Thanh toán bằng tiền mặt khi nhận hàng</p>
+                                    </div>
+                                </div>
+
+                                <div class="payment-method" onclick="selectPayment(this, 'bank_transfer')">
+                                    <input type="radio" name="payment_method" value="bank_transfer">
+                                    <div class="method-icon">
+                                        <i class="fas fa-university"></i>
+                                    </div>
+                                    <div class="method-details">
+                                        <div class="method-title">Chuyển khoản ngân hàng</div>
+                                        <p class="method-description">Chuyển khoản qua tài khoản ngân hàng</p>
+                                        <div class="payment-icons">
+                                            <i class="fas fa-credit-card"></i>
+                                            <i class="fab fa-cc-visa"></i>
+                                            <i class="fab fa-cc-mastercard"></i>
                                         </div>
                                     </div>
-                                </label>
+                                </div>
+
+                                <div class="payment-method" onclick="selectPayment(this, 'e_wallet')">
+                                    <input type="radio" name="payment_method" value="e_wallet">
+                                    <div class="method-icon">
+                                        <i class="fas fa-wallet"></i>
+                                    </div>
+                                    <div class="method-details">
+                                        <div class="method-title">Ví điện tử</div>
+                                        <p class="method-description">Thanh toán qua ví điện tử</p>
+                                        <div class="payment-icons">
+                                            <i class="fas fa-qrcode" title="Momo"></i>
+                                            <i class="fas fa-wallet" title="ZaloPay"></i>
+                                            <i class="fas fa-money-check" title="VNPay"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="payment-method" onclick="selectPayment(this, 'installment')">
+                                    <input type="radio" name="payment_method" value="installment">
+                                    <div class="method-icon">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="method-details">
+                                        <div class="method-title">Trả góp</div>
+                                        <p class="method-description">Trả góp qua thẻ tín dụng hoặc công ty tài chính</p>
+                                        <div class="payment-icons">
+                                            <i class="fab fa-cc-visa"></i>
+                                            <i class="fab fa-cc-mastercard"></i>
+                                            <i class="fab fa-cc-jcb"></i>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -488,21 +746,21 @@ try {
                         <div class="section-title">
                             <i class="fas fa-shopping-cart"></i>
                             Đơn hàng của bạn
-            </div>
+                        </div>
 
-                    <div class="cart-items">
+                        <div class="cart-items">
                             <?php foreach ($cart_items as $item): ?>
-                        <div class="cart-item">
-                                <img src="<?php echo htmlspecialchars('/shoppingcart/public/uploads/products/' . $item['image']); ?>" 
-                                     alt="<?php echo htmlspecialchars($item['name']); ?>" 
-                                     class="item-image"
-                                     onerror="this.src='/shoppingcart/public/images/no-image.jpg'">
-                                <div class="item-details">
-                                    <div class="item-name"><?php echo htmlspecialchars($item['name']); ?></div>
-                                    <div class="item-price"><?php echo number_format($item['price'], 0, ',', '.'); ?>₫</div>
-                                    <div class="item-quantity">Số lượng: <?php echo $item['quantity']; ?></div>
-                            </div>
-                            </div>
+                                <div class="cart-item">
+                                    <img src="<?php echo htmlspecialchars('/shoppingcart/public/uploads/products/' . $item['image']); ?>" 
+                                         alt="<?php echo htmlspecialchars($item['name']); ?>" 
+                                         class="item-image"
+                                         onerror="this.src='/shoppingcart/public/images/no-image.jpg'">
+                                    <div class="item-details">
+                                        <div class="item-name"><?php echo htmlspecialchars($item['name']); ?></div>
+                                        <div class="item-price"><?php echo number_format($item['price'], 0, ',', '.'); ?>₫</div>
+                                        <div class="item-quantity">Số lượng: <?php echo $item['quantity']; ?></div>
+                                    </div>
+                                </div>
                             <?php endforeach; ?>
                         </div>
 
@@ -514,20 +772,20 @@ try {
                             <div class="summary-row">
                                 <span class="summary-label">Phí vận chuyển</span>
                                 <span class="summary-value"><?php echo number_format($shipping_fee, 0, ',', '.'); ?>₫</span>
-                    </div>
+                            </div>
                             <?php if ($shipping_fee === 0): ?>
-                            <div class="shipping-note">
-                                <i class="fas fa-check-circle"></i>
-                                Bạn được miễn phí vận chuyển
-                        </div>
+                                <div class="shipping-note">
+                                    <i class="fas fa-check-circle"></i>
+                                    Bạn được miễn phí vận chuyển
+                                </div>
                             <?php endif; ?>
                             <div class="summary-row total-row">
                                 <span class="summary-label">Tổng cộng</span>
                                 <span class="summary-value"><?php echo number_format($final_total, 0, ',', '.'); ?>₫</span>
-                        </div>
+                            </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <button type="button" class="btn btn-primary" id="submitBtn">
                             <i class="fas fa-lock"></i>
                             Đặt hàng
                         </button>
@@ -541,35 +799,56 @@ try {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        async function handleSubmit(event) {
-            event.preventDefault();
+        const form = document.getElementById('checkoutForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Xử lý sự kiện click nút đặt hàng
+        submitBtn.addEventListener('click', async function(e) {
+            e.preventDefault(); // Ngăn form submit mặc định
             
-            const form = event.target;
-            const submitBtn = document.getElementById('submitBtn');
-            
-            // Disable nút đặt hàng
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
-            
+            // Validate form trước khi submit
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
             try {
-                const formData = new FormData(form);
-                const data = Object.fromEntries(formData.entries());
-                
-                const response = await fetch(form.action, {
+                // Disable nút để tránh double-click
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+
+                // Lấy giá trị shipping fee từ phương thức vận chuyển đã chọn
+                const selectedShippingMethod = document.querySelector('input[name="shipping_method"]:checked').value;
+                const shippingFee = getShippingFee(selectedShippingMethod);
+
+                // Lấy tổng tiền từ summary
+                const totalAmount = parseInt(document.querySelector('.total-row .summary-value').textContent.replace(/[^\d]/g, ''));
+
+                const data = {
+                    fullname: form.querySelector('#fullname').value,
+                    phone: form.querySelector('#phone').value,
+                    email: form.querySelector('#email').value,
+                    address: form.querySelector('#address').value,
+                    shipping_method: selectedShippingMethod,
+                    payment_method: document.querySelector('input[name="payment_method"]:checked').value,
+                    shipping_fee: shippingFee,
+                    total_amount: totalAmount
+                };
+
+                const response = await fetch('/shoppingcart/api/orders/create.php', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify(data)
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
-                    showToast('Đặt hàng thành công!', 'success');
-                    // Chuyển hướng ngay lập tức
+                    // Chuyển hướng đến trang thành công
                     window.location.href = '/shoppingcart/orders/success';
-                    return false;
                 } else {
                     showToast(result.message || 'Có lỗi xảy ra, vui lòng thử lại.', 'error');
                     submitBtn.disabled = false;
@@ -581,9 +860,7 @@ try {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-lock"></i> Đặt hàng';
             }
-            
-            return false;
-        }
+        });
 
         function showToast(message, type = 'success') {
             const toastContainer = document.querySelector('.toast-container');
@@ -601,18 +878,44 @@ try {
             }, 3000);
         }
 
-        // Validate phone number
-        document.getElementById('phone').addEventListener('input', function(e) {
-            const phone = e.target.value.replace(/\D/g, '');
-            e.target.value = phone;
-        });
+        function getShippingFee(method) {
+            switch(method) {
+                case 'standard':
+                    return 30000;
+                case 'express':
+                    return 45000;
+                case 'same_day':
+                    return 70000;
+                default:
+                    return 30000;
+            }
+        }
 
-        // Format currency
-        function formatCurrency(number) {
-            return new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND'
-            }).format(number);
+        function selectShipping(element, method) {
+            document.querySelectorAll('.shipping-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            element.querySelector('input[type="radio"]').checked = true;
+            
+            // Cập nhật phí vận chuyển và tổng tiền
+            const shippingFee = getShippingFee(method);
+            const subtotal = parseInt(document.querySelector('.summary-row:first-child .summary-value').textContent.replace(/[^\d]/g, ''));
+            const total = subtotal + shippingFee;
+            
+            // Cập nhật hiển thị
+            document.querySelector('.summary-row:nth-child(2) .summary-value').textContent = 
+                new Intl.NumberFormat('vi-VN').format(shippingFee) + '₫';
+            document.querySelector('.total-row .summary-value').textContent = 
+                new Intl.NumberFormat('vi-VN').format(total) + '₫';
+        }
+
+        function selectPayment(element, method) {
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            element.querySelector('input[type="radio"]').checked = true;
         }
     </script>
 </body>

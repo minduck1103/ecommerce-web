@@ -2,9 +2,18 @@
 require_once '../config.php';
 require_once '../../app/config/database.php';
 
+// Debug: Kiểm tra file được load
+error_log("Loading orders.php");
+
 // Khởi tạo kết nối database
-$database = new Database();
-$conn = $database->getConnection();
+try {
+    $database = new Database();
+    $conn = $database->getConnection();
+    error_log("Database connection successful");
+} catch (Exception $e) {
+    error_log("Database connection error: " . $e->getMessage());
+    die("Không thể kết nối đến database");
+}
 
 // Lấy danh sách đơn hàng
 try {
@@ -15,36 +24,66 @@ try {
         ORDER BY o.created_at DESC
     ");
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    error_log("Found " . count($orders) . " orders");
 } catch (PDOException $e) {
+    error_log("Query error: " . $e->getMessage());
     $orders = [];
 }
 
+// Debug: In ra số lượng đơn hàng
+echo "<!-- Debug: Found " . count($orders) . " orders -->";
+
 // Hàm lấy màu cho trạng thái
 function getStatusColor($status) {
-    return match($status) {
-        'pending' => 'warning',
-        'processing' => 'info',
-        'shipped' => 'primary',
-        'delivered' => 'success',
-        'cancelled' => 'danger',
-        default => 'secondary'
-    };
+    switch($status) {
+        case 'pending': return 'warning';
+        case 'processing': return 'info';
+        case 'shipped': return 'primary';
+        case 'delivered': return 'success';
+        case 'cancelled': return 'danger';
+        default: return 'secondary';
+    }
 }
 
 // Hàm lấy text cho trạng thái
 function getStatusText($status) {
-    return match($status) {
-        'pending' => 'Chờ xử lý',
-        'processing' => 'Đang xử lý',
-        'shipped' => 'Đã giao cho vận chuyển',
-        'delivered' => 'Đã giao hàng',
-        'cancelled' => 'Đã hủy',
-        default => 'Không xác định'
-    };
+    switch($status) {
+        case 'pending': return 'Chờ xử lý';
+        case 'processing': return 'Đang xử lý';
+        case 'shipped': return 'Đã giao cho vận chuyển';
+        case 'delivered': return 'Đã giao hàng';
+        case 'cancelled': return 'Đã hủy';
+        default: return 'Không xác định';
+    }
+}
+
+// Hàm lấy text cho phương thức vận chuyển
+function getShippingMethodText($method) {
+    switch($method) {
+        case 'standard': return 'Giao hàng tiêu chuẩn';
+        case 'express': return 'Giao hàng nhanh';
+        case 'free': return 'Miễn phí vận chuyển';
+        default: return $method;
+    }
+}
+
+// Hàm lấy text cho phương thức thanh toán
+function getPaymentMethodText($method) {
+    switch($method) {
+        case 'cod': return 'Thanh toán khi nhận hàng';
+        case 'bank_transfer': return 'Chuyển khoản ngân hàng';
+        case 'momo': return 'Ví MoMo';
+        case 'vnpay': return 'VNPay';
+        default: return $method;
+    }
 }
 ?>
 
 <!-- CSS styles -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
 <style>
 .action-column {
     text-align: center !important;
@@ -157,7 +196,12 @@ function getStatusText($status) {
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($orders as $order): ?>
+                        <?php 
+                        if (empty($orders)) {
+                            echo '<tr><td colspan="7" class="text-center">Không có đơn hàng nào</td></tr>';
+                        } else {
+                            foreach ($orders as $order): 
+                        ?>
                         <tr>
                             <td><?= htmlspecialchars($order['id']) ?></td>
                             <td><?= htmlspecialchars($order['username']) ?></td>
@@ -165,7 +209,7 @@ function getStatusText($status) {
                             <td><?= number_format($order['total_amount'], 0, ',', '.') ?> đ</td>
                             <td>
                                 <select class="form-select form-select-sm status-select" 
-                                        onchange="updateOrderStatus(<?= $order['id'] ?>, this.value)"
+                                        onchange="updateOrderStatus(<?= $order['id'] ?>, this.value, this)"
                                         style="width: auto; display: inline-block;">
                                     <option value="pending" <?= $order['status'] == 'pending' ? 'selected' : '' ?>>Chờ xử lý</option>
                                     <option value="processing" <?= $order['status'] == 'processing' ? 'selected' : '' ?>>Đang xử lý</option>
@@ -179,12 +223,15 @@ function getStatusText($status) {
                                 <button type="button" class="btn btn-sm btn-info btn-action" onclick="viewOrderDetails(<?= $order['id'] ?>)">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-danger btn-action" onclick="confirmDelete(<?= $order['id'] ?>)">
+                                <button type="button" class="btn btn-sm btn-danger btn-action" onclick="showDeleteConfirm(<?= $order['id'] ?>)">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
                         </tr>
-                        <?php endforeach; ?>
+                        <?php 
+                            endforeach; 
+                        }
+                        ?>
                     </tbody>
                 </table>
             </div>
@@ -211,10 +258,13 @@ function getStatusText($status) {
                     </div>
                     <div class="col-md-6">
                         <h6 class="mb-3">Thông tin đơn hàng</h6>
-                        <p><strong>Mã đơn hàng:</strong> #<span id="orderId"></span></p>
                         <p><strong>Ngày đặt:</strong> <span id="orderDate"></span></p>
                         <p><strong>Trạng thái:</strong> <span id="orderStatus"></span></p>
+                        <p><strong>Phương thức vận chuyển:</strong> <span id="shippingMethod"></span></p>
+                        <p><strong>Phương thức thanh toán:</strong> <span id="paymentMethod"></span></p>
+                        <p><strong>Phí vận chuyển:</strong> <span id="shippingFee"></span></p>
                         <p><strong>Tổng tiền:</strong> <span id="orderTotal"></span></p>
+                        <p><strong>Ghi chú:</strong> <span id="orderNote"></span></p>
                     </div>
                 </div>
                 <h6 class="mb-3">Chi tiết sản phẩm</h6>
@@ -222,14 +272,29 @@ function getStatusText($status) {
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th style="width: 60px">Ảnh</th>
                                 <th>Sản phẩm</th>
-                                <th style="width: 100px">Số lượng</th>
-                                <th style="width: 120px">Đơn giá</th>
-                                <th style="width: 120px">Thành tiền</th>
+                                <th>Hình ảnh</th>
+                                <th>Giá</th>
+                                <th>Số lượng</th>
+                                <th>Thành tiền</th>
                             </tr>
                         </thead>
-                        <tbody id="orderProducts"></tbody>
+                        <tbody id="orderDetailsTableBody">
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>Tổng tiền sản phẩm:</strong></td>
+                                <td id="subtotal"></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>Phí vận chuyển:</strong></td>
+                                <td id="shippingFeeTotal"></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>Tổng cộng:</strong></td>
+                                <td id="grandTotal"></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -240,192 +305,249 @@ function getStatusText($status) {
     </div>
 </div>
 
-<!-- Delete Confirmation Dialog -->
-<div class="custom-dialog-overlay" id="deleteConfirmDialog">
-    <div class="custom-dialog">
-        <div class="custom-dialog-message">
-            Bạn có chắc chắn muốn xóa đơn hàng này?
-        </div>
-        <div class="custom-dialog-buttons">
-            <button type="button" class="btn btn-primary" onclick="handleDeleteConfirm()">Có</button>
-            <button type="button" class="btn btn-secondary" onclick="hideDeleteDialog()">Không</button>
+<!-- Modal Xác nhận xóa -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Xác nhận xóa</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa đơn hàng #<span id="deleteOrderId"></span>?</p>
+                <p class="mb-0 text-danger">Lưu ý: Hành động này không thể hoàn tác!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                    Xóa
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Success Toast -->
+<!-- Toast Notification -->
 <div class="toast-container">
-    <div class="toast success-toast" id="successToast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast" id="toastNotification" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-body" id="toastMessage">
-            Thao tác thành công
         </div>
     </div>
 </div>
 
-<!-- JavaScript -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Khởi tạo DataTable
-    $('#ordersTable').DataTable({
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
-        },
-        responsive: true,
-        pageLength: 10,
-        order: [[5, 'desc']] // Sắp xếp theo ngày đặt hàng
-    });
+console.log('Script section started');
 
-    // Khởi tạo toast
-    const successToast = new bootstrap.Toast(document.getElementById('successToast'), {
-        delay: 3000
-    });
-    window.successToast = successToast;
+// JavaScript helper functions
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+}
 
-    // Khởi tạo modal
-    window.orderDetailsModal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+function getStatusTextJS(status) {
+    const statusMap = {
+        'pending': 'Chờ xử lý',
+        'processing': 'Đang xử lý',
+        'shipped': 'Đã giao cho vận chuyển',
+        'delivered': 'Đã giao hàng',
+        'cancelled': 'Đã hủy'
+    };
+    return statusMap[status] || 'Không xác định';
+}
+
+function getShippingMethodTextJS(method) {
+    const methodMap = {
+        'standard': 'Giao hàng tiêu chuẩn',
+        'express': 'Giao hàng nhanh',
+        'free': 'Miễn phí vận chuyển'
+    };
+    return methodMap[method] || method;
+}
+
+function getPaymentMethodTextJS(method) {
+    const methodMap = {
+        'cod': 'Thanh toán khi nhận hàng',
+        'bank_transfer': 'Chuyển khoản ngân hàng',
+        'momo': 'Ví MoMo',
+        'vnpay': 'VNPay'
+    };
+    return methodMap[method] || method;
+}
+
+// Initialize DataTable when document is ready
+$(document).ready(function() {
+    console.log('Document ready');
+    try {
+        // Check jQuery
+        console.log('jQuery version:', $.fn.jquery);
+        
+        // Check DataTables
+        if ($.fn.DataTable) {
+            console.log('DataTables is loaded');
+            
+            // Initialize DataTable
+            $('#ordersTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Vietnamese.json"
+                },
+                "pageLength": 10,
+                "order": [[5, 'desc']]
+            });
+            console.log('DataTable initialized');
+        } else {
+            console.error('DataTables is not loaded');
+        }
+    } catch (error) {
+        console.error('Error in document ready:', error);
+    }
 });
 
-function viewOrderDetails(id) {
-    fetch(`../api/orders.php?id=${id}`)
-        .then(response => response.text())
-        .then(text => {
-            try {
-                return JSON.parse(text);
-            } catch (e) {
-                console.error('Response text:', text);
-                if (text.includes('<!DOCTYPE') || text.includes('Unauthorized')) {
-                    window.location.href = '../login.php';
-                    throw new Error('Phiên làm việc đã hết hạn');
-                }
-                throw new Error('Invalid response format');
-            }
-        })
-        .then(data => {
-            if (data.success) {
-                const order = data.order;
-                const details = data.orderDetails;
-
-                // Cập nhật thông tin khách hàng
-                document.getElementById('customerName').textContent = order.full_name || 'N/A';
-                document.getElementById('customerEmail').textContent = order.email || 'N/A';
-                document.getElementById('customerPhone').textContent = order.phone || 'N/A';
-                document.getElementById('customerAddress').textContent = order.address || 'N/A';
-
-                // Cập nhật thông tin đơn hàng
-                document.getElementById('orderIdSpan').textContent = order.id;
-                document.getElementById('orderId').textContent = order.id;
-                document.getElementById('orderDate').textContent = new Date(order.created_at).toLocaleString('vi-VN');
-                document.getElementById('orderStatus').textContent = getStatusText(order.status);
-                document.getElementById('orderTotal').textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.total_amount);
-
-                // Cập nhật danh sách sản phẩm
-                const productsHtml = details.map(item => `
-                    <tr>
-                        <td><img src="/shoppingcart/public/images/${item.product_image}" class="product-image" alt="${item.product_name}"></td>
-                        <td>${item.product_name}</td>
-                        <td class="text-center">${item.quantity}</td>
-                        <td class="text-end">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</td>
-                        <td class="text-end">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price * item.quantity)}</td>
-                    </tr>
-                `).join('');
-                document.getElementById('orderProducts').innerHTML = productsHtml;
-
-                // Hiển thị modal
-                orderDetailsModal.show();
-            } else {
-                throw new Error(data.message || 'Không thể tải thông tin đơn hàng');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            if (error.message === 'Phiên làm việc đã hết hạn') {
-                alert('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.');
-                window.location.href = '../login.php';
-            } else {
-                alert(error.message || 'Có lỗi xảy ra khi tải thông tin đơn hàng');
-            }
-        });
-}
-
-function confirmDelete(id) {
-    if (!id) {
-        console.error('No order ID provided');
-        return;
-    }
-
-    document.getElementById('deleteConfirmDialog').style.display = 'block';
-    window.orderIdToDelete = id;
-}
-
-function hideDeleteDialog() {
-    document.getElementById('deleteConfirmDialog').style.display = 'none';
-    window.orderIdToDelete = null;
-}
-
-function handleDeleteConfirm() {
-    const id = window.orderIdToDelete;
-    if (!id) {
-        console.error('No order ID to delete');
-        return;
-    }
-    
-    deleteOrder(id);
-    hideDeleteDialog();
-}
-
-function deleteOrder(id) {
-    fetch('../api/orders.php', {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id: id }),
-        credentials: 'include'
-    })
-    .then(response => response.text())
-    .then(text => {
-        try {
-            return JSON.parse(text);
-        } catch (e) {
-            console.error('Response text:', text);
-            if (text.includes('<!DOCTYPE') || text.includes('Unauthorized')) {
-                window.location.href = '../login.php';
-                throw new Error('Phiên làm việc đã hết hạn');
-            }
-            throw new Error('Invalid response format');
+// View order details
+async function viewOrderDetails(orderId) {
+    console.log('Viewing order details for ID:', orderId);
+    try {
+        const response = await fetch(`api/orders.php?id=${orderId}`);
+        console.log('API Response:', response);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    })
-    .then(data => {
+        
+        const data = await response.json();
+        console.log('Order data:', data);
+        
         if (data.success) {
-            // Hiển thị toast thành công
-            window.successToast.show();
+            const order = data.order;
+            const orderDetails = data.orderDetails;
             
-            // Đợi 1 giây trước khi reload
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
+            // Update order information
+            document.getElementById('orderIdSpan').textContent = order.id;
+            document.getElementById('customerName').textContent = order.full_name || 'N/A';
+            document.getElementById('customerEmail').textContent = order.email || 'N/A';
+            document.getElementById('customerPhone').textContent = order.phone || 'N/A';
+            document.getElementById('customerAddress').textContent = order.address || 'N/A';
+            document.getElementById('orderDate').textContent = new Date(order.created_at).toLocaleString('vi-VN');
+            document.getElementById('orderStatus').textContent = getStatusTextJS(order.status);
+            document.getElementById('shippingMethod').textContent = getShippingMethodTextJS(order.shipping_method);
+            document.getElementById('paymentMethod').textContent = getPaymentMethodTextJS(order.payment_method);
+            document.getElementById('shippingFee').textContent = formatCurrency(order.shipping_fee);
+            document.getElementById('orderTotal').textContent = formatCurrency(order.total_amount);
+            document.getElementById('orderNote').textContent = order.note || 'Không có';
+            
+            // Update product details table
+            const tbody = document.getElementById('orderDetailsTableBody');
+            tbody.innerHTML = '';
+            
+            let subtotal = 0;
+            
+            orderDetails.forEach(detail => {
+                const row = document.createElement('tr');
+                const lineTotal = parseFloat(detail.price) * parseInt(detail.quantity);
+                subtotal += lineTotal;
+                
+                const defaultImage = '/shoppingcart/public/images/no-image.jpg';
+                const imageUrl = detail.product_image_url || defaultImage;
+                
+                row.innerHTML = `
+                    <td>${detail.product_name || 'Sản phẩm không xác định'}</td>
+                    <td>
+                        <img src="${imageUrl}" 
+                             class="product-image" 
+                             alt="${detail.product_name || 'Sản phẩm'}"
+                             onerror="this.src='${defaultImage}'">
+                    </td>
+                    <td>${formatCurrency(detail.price)}</td>
+                    <td>${detail.quantity}</td>
+                    <td>${formatCurrency(lineTotal)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // Update totals
+            document.getElementById('subtotal').textContent = formatCurrency(subtotal);
+            document.getElementById('shippingFeeTotal').textContent = formatCurrency(order.shipping_fee);
+            document.getElementById('grandTotal').textContent = formatCurrency(order.total_amount);
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+            modal.show();
         } else {
-            throw new Error(data.message || 'Có lỗi xảy ra khi xóa đơn hàng');
+            showToast('Lỗi', data.message || 'Không thể tải thông tin đơn hàng', 'error');
         }
-    })
-    .catch(error => {
-        console.error('Delete error:', error);
-        if (error.message === 'Phiên làm việc đã hết hạn') {
-            alert('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.');
-            window.location.href = '../login.php';
-        } else {
-            alert(error.message || 'Có lỗi xảy ra khi xóa đơn hàng. Vui lòng thử lại sau.');
-        }
-    });
+    } catch (error) {
+        console.error('Error in viewOrderDetails:', error);
+        showToast('Lỗi', 'Có lỗi xảy ra khi tải thông tin đơn hàng', 'error');
+    }
 }
 
-function updateOrderStatus(id, status) {
+let orderIdToDelete = null;
+const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+
+// Show delete confirmation modal
+function showDeleteConfirm(orderId) {
+    orderIdToDelete = orderId;
+    document.getElementById('deleteOrderId').textContent = orderId;
+    deleteConfirmModal.show();
+}
+
+// Handle order deletion
+async function confirmDelete() {
+    console.log('Confirming delete for order ID:', orderIdToDelete);
+    if (!orderIdToDelete) return;
+
+    try {
+        const response = await fetch('api/orders.php', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: orderIdToDelete })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showToast('Thành công', 'Đã xóa đơn hàng thành công', 'success');
+            deleteConfirmModal.hide();
+            // Reload after 1 second
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            throw new Error(result.message || 'Có lỗi xảy ra khi xóa đơn hàng');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Lỗi', error.message || 'Có lỗi xảy ra khi xóa đơn hàng', 'error');
+    } finally {
+        orderIdToDelete = null;
+    }
+}
+
+// Show toast notification
+function showToast(title, message, type = 'success') {
+    console.log('Showing toast:', { title, message, type });
+    const toast = document.getElementById('toastNotification');
+    const toastMessage = document.getElementById('toastMessage');
+    
+    // Remove old classes
+    toast.classList.remove('bg-success', 'bg-danger');
+    
+    // Add new class based on type
+    toast.classList.add(type === 'success' ? 'bg-success' : 'bg-danger');
+    
+    toastMessage.textContent = message;
+    
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+}
+
+// Update order status
+function updateOrderStatus(id, status, element) {
+    console.log('Updating order status:', { id, status });
     if (!id || !status) {
         console.error('Missing required fields');
         return;
     }
 
-    fetch('../api/orders.php', {
+    fetch('api/orders.php', {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -440,7 +562,7 @@ function updateOrderStatus(id, status) {
         } catch (e) {
             console.error('Response text:', text);
             if (text.includes('<!DOCTYPE') || text.includes('Unauthorized')) {
-                window.location.href = '../login.php';
+                window.location.href = 'login.php';
                 throw new Error('Phiên làm việc đã hết hạn');
             }
             throw new Error('Invalid response format');
@@ -448,15 +570,19 @@ function updateOrderStatus(id, status) {
     })
     .then(data => {
         if (data.success) {
-            // Cập nhật thông báo toast
-            document.getElementById('toastMessage').textContent = 'Cập nhật trạng thái thành công';
-            window.successToast.show();
+            showToast('Thành công', 'Cập nhật trạng thái thành công');
             
-            // Cập nhật màu sắc của status
-            const statusCell = event.target.closest('td');
+            // Update status cell color
+            const statusCell = element.closest('td');
             const statusClass = `status-${status.toLowerCase()}`;
             statusCell.className = '';
             statusCell.classList.add(statusClass);
+            
+            // Update dashboard statistics
+            updateDashboardStats();
+            
+            // Reload page after 1 second
+            setTimeout(() => window.location.reload(), 1000);
         } else {
             throw new Error(data.message || 'Có lỗi xảy ra khi cập nhật trạng thái');
         }
@@ -465,21 +591,48 @@ function updateOrderStatus(id, status) {
         console.error('Update error:', error);
         if (error.message === 'Phiên làm việc đã hết hạn') {
             alert('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.');
-            window.location.href = '../login.php';
+            window.location.href = 'login.php';
         } else {
-            alert(error.message || 'Có lỗi xảy ra khi cập nhật trạng thái. Vui lòng thử lại sau.');
+            showToast('Lỗi', error.message || 'Có lỗi xảy ra khi cập nhật trạng thái', 'error');
         }
     });
 }
 
-function getStatusText(status) {
-    const statusMap = {
-        'pending': 'Chờ xử lý',
-        'processing': 'Đang xử lý',
-        'shipped': 'Đã giao cho vận chuyển',
-        'delivered': 'Đã giao hàng',
-        'cancelled': 'Đã hủy'
-    };
-    return statusMap[status] || 'Không xác định';
+// Function to update dashboard statistics
+function updateDashboardStats() {
+    fetch('api/dashboard_stats.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update order statistics in dashboard
+                const stats = data.stats;
+                if (window.parent.document.getElementById('totalOrders')) {
+                    window.parent.document.getElementById('totalOrders').textContent = stats.total_orders || 0;
+                }
+                if (window.parent.document.getElementById('pendingOrders')) {
+                    window.parent.document.getElementById('pendingOrders').textContent = stats.pending_orders || 0;
+                }
+                if (window.parent.document.getElementById('processingOrders')) {
+                    window.parent.document.getElementById('processingOrders').textContent = stats.processing_orders || 0;
+                }
+                if (window.parent.document.getElementById('shippedOrders')) {
+                    window.parent.document.getElementById('shippedOrders').textContent = stats.shipped_orders || 0;
+                }
+                if (window.parent.document.getElementById('deliveredOrders')) {
+                    window.parent.document.getElementById('deliveredOrders').textContent = stats.delivered_orders || 0;
+                }
+                if (window.parent.document.getElementById('cancelledOrders')) {
+                    window.parent.document.getElementById('cancelledOrders').textContent = stats.cancelled_orders || 0;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error updating dashboard stats:', error);
+        });
 }
-</script> 
+</script>
+
+<?php
+// Debug: Print end of file
+error_log("End of orders.php");
+?>

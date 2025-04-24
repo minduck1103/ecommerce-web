@@ -7,6 +7,11 @@ RewriteEngine On
     Header set Access-Control-Allow-Headers "Content-Type"
 </IfModule>
 
+# Rewrite rules for API endpoints
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^orders/(\d+)$ orders.php?id=$1 [QSA,L]
+
 # Ensure PHP errors are displayed
 php_flag display_errors on
 php_value error_reporting E_ALL 

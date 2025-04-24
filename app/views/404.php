@@ -20,7 +20,7 @@
         .error-code {
             font-size: 6rem;
             font-weight: bold;
-            color: #dc3545;
+            color:rgb(40, 177, 86);
             margin-bottom: 1rem;
         }
         .error-message {

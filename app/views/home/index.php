@@ -65,6 +65,7 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
             height: 80vh;
             position: relative;
             margin-bottom: 2rem;
+            background-color: #000;
         }
 
         .banner-container {
@@ -79,7 +80,13 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
             height: 100%;
             object-fit: cover;
             object-position: center;
-            display: block;
+            opacity: 0.9;
+            transform: scale(1.02);
+            transition: transform 6s ease;
+        }
+
+        .banner-container:hover .banner-image {
+            transform: scale(1.1);
         }
 
         .banner-overlay {
@@ -88,16 +95,37 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.3));
+            background: linear-gradient(
+                to bottom,
+                rgba(0, 0, 0, 0.2) 0%,
+                rgba(0, 0, 0, 0.4) 100%
+            );
             z-index: 1;
         }
 
         .banner-content {
             position: absolute;
-            bottom: 30px;
+            bottom: 50%;
             left: 0;
             right: 0;
+            transform: translateY(50%);
+            text-align: center;
             z-index: 2;
+            color: white;
+            padding: 0 1rem;
+        }
+
+        .banner-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .banner-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .banner-button-container {
@@ -106,22 +134,62 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
 
         .banner-button {
             display: inline-block;
-            padding: 1rem 3rem;
-            background-color: #888;
-            color: white;
+            padding: 1.2rem 3.5rem;
+            background-color: white;
+            color: #333;
             text-decoration: none;
-            border-radius: 30px;
+            border-radius: 50px;
             font-weight: 600;
             font-size: 1.1rem;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .banner-button:hover {
-            background-color: #999;
+            background-color: #333;
             color: white;
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 768px) {
+            .banner-section {
+                height: 60vh;
+            }
+
+            .banner-title {
+                font-size: 2.5rem;
+            }
+
+            .banner-subtitle {
+                font-size: 1.2rem;
+            }
+
+            .banner-button {
+                padding: 1rem 2.5rem;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .banner-section {
+                height: 50vh;
+            }
+
+            .banner-title {
+                font-size: 2rem;
+            }
+
+            .banner-subtitle {
+                font-size: 1rem;
+            }
+
+            .banner-button {
+                padding: 0.8rem 2rem;
+                font-size: 0.9rem;
+            }
         }
 
         /* Category Tabs */
@@ -175,21 +243,23 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
         /* Product Card */
         .product-card {
             background: #fff;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.06);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
         }
 
         .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
         }
 
         .product-image {
             position: relative;
             padding-top: 100%;
             overflow: hidden;
+            background: #f8f9fa;
         }
 
         .product-image img {
@@ -199,11 +269,11 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.5s ease;
+            transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
         .product-card:hover .product-image img {
-            transform: scale(1.1);
+            transform: scale(1.08);
         }
 
         .product-actions {
@@ -213,10 +283,10 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
             right: 0;
             display: flex;
             justify-content: center;
-            gap: 1rem;
+            gap: 0.8rem;
             opacity: 0;
             transform: translateY(20px);
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
         .product-card:hover .product-actions {
@@ -225,8 +295,8 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
         }
 
         .action-btn {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             background: #fff;
             border: none;
@@ -235,43 +305,62 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            color: #333;
         }
 
         .action-btn:hover {
-            background: #888;
+            background: #333;
             color: #fff;
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
         .product-info {
-            padding: 1rem;
+            padding: 1.2rem;
         }
 
         .product-name {
             font-size: 1rem;
-            margin-bottom: 0.5rem;
             font-weight: 500;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+            height: 2.8em;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
 
         .product-name a {
             color: #333;
             text-decoration: none;
+            transition: color 0.3s ease;
         }
 
         .product-name a:hover {
-            color: #888;
+            color: #666;
         }
 
         .product-rating {
             color: #ffc107;
             margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
 
         .product-price {
             font-weight: 600;
             color: #333;
             font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .original-price {
+            color: #999;
+            text-decoration: line-through;
+            font-size: 0.9rem;
         }
 
         /* View All Button */
@@ -381,183 +470,255 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
             color: white;
             transform: translateY(-2px);
         }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1050;
+        }
+
+        .custom-toast {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: 300px;
+            max-width: 400px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .toast-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #4CAF50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex-grow: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #333;
+        }
+
+        .toast-message {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
     <?php include __DIR__ . '/../partials/header.php'; ?>
 
-<!-- Banner Section -->
-<section class="banner-section">
-    <div class="banner-container">
-        <img src="/shoppingcart/public/images/banner-fashion.jpg" alt="Fashion Banner" class="banner-image">
-        <div class="banner-overlay"></div>
-        <div class="banner-content">
-                <div class="banner-button-container">
-            <a href="/shoppingcart/products" class="banner-button">Xem sản phẩm</a>
-                </div>
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
+    <!-- Banner Section -->
+    <section class="banner-section">
+        <div class="banner-container">
+            <img src="/shoppingcart/public/images/banner-landing.jpg" alt="Fashion Banner" class="banner-image">
+            <div class="banner-overlay"></div>
+            <div class="banner-content">
+                    <div class="banner-button-container">
+                <a href="/shoppingcart/products" class="banner-button">Xem sản phẩm</a>
+                    </div>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Product Categories -->
-<div class="container py-5">
-    <div class="category-tabs">
-        <button class="tab-btn active" data-category="best-seller">BEST SELLER</button>
-        <button class="tab-btn" data-category="new-arrival">NEW ARRIVAL</button>
-    </div>
+    <!-- Product Categories -->
+    <div class="container py-5">
+        <div class="category-tabs">
+            <button class="tab-btn active" data-category="best-seller">BEST SELLER</button>
+            <button class="tab-btn" data-category="new-arrival">NEW ARRIVAL</button>
+        </div>
 
-    <!-- Product Grid - Best Sellers -->
-    <div class="product-grid" id="best-seller-grid">
-            <?php if (!empty($bestSellers)): ?>
-        <?php foreach ($bestSellers as $product): ?>
-        <div class="product-card">
-            <div class="product-image">
-                <a href="/shoppingcart/products/detail/<?= $product['id'] ?>">
-                                <?php if (!empty($product['image'])): ?>
-                                    <img src="/shoppingcart/public/uploads/products/<?= htmlspecialchars($product['image']) ?>" 
-                                         alt="<?= htmlspecialchars($product['name']) ?>"
-                                         onerror="this.src='/shoppingcart/public/images/default-product.jpg'">
-                                <?php else: ?>
-                                    <img src="/shoppingcart/public/images/default-product.jpg" 
-                         alt="<?= htmlspecialchars($product['name']) ?>">
-                                <?php endif; ?>
-                </a>
-                <div class="product-actions">
-                    <button class="action-btn" onclick="addToCart(<?= $product['id'] ?>)">
-                        <i class="fas fa-shopping-cart"></i>
-                    </button>
-                    <button class="action-btn" onclick="addToWishlist(<?= $product['id'] ?>)">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                </div>
-                        </div>
-            <div class="product-info">
-                <h3 class="product-name">
+        <!-- Product Grid - Best Sellers -->
+        <div class="product-grid" id="best-seller-grid">
+                <?php if (!empty($bestSellers)): ?>
+            <?php foreach ($bestSellers as $product): ?>
+            <div class="product-card">
+                <div class="product-image">
                     <a href="/shoppingcart/products/detail/<?= $product['id'] ?>">
-                        <?= htmlspecialchars($product['name']) ?>
+                                    <?php if (!empty($product['image'])): ?>
+                                        <img src="/shoppingcart/public/uploads/products/<?= htmlspecialchars($product['image']) ?>" 
+                                             alt="<?= htmlspecialchars($product['name']) ?>"
+                                             onerror="this.src='/shoppingcart/public/images/default-product.jpg'">
+                                    <?php else: ?>
+                                        <img src="/shoppingcart/public/images/default-product.jpg" 
+                             alt="<?= htmlspecialchars($product['name']) ?>">
+                                    <?php endif; ?>
                     </a>
-                </h3>
-                            <div class="product-rating">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
+                    <div class="product-actions">
+                        <button class="action-btn" onclick="addToCart(<?= $product['id'] ?>)">
+                            <i class="fas fa-shopping-cart"></i>
+                        </button>
+                        <button class="action-btn" onclick="addToWishlist(<?= $product['id'] ?>)">
+                            <i class="fas fa-heart"></i>
+                        </button>
                     </div>
-                <div class="product-price">
-                    <?= number_format($product['price'], 0, ',', '.') ?>₫
-                </div>
-            </div>
+                            </div>
+                <div class="product-info">
+                    <h3 class="product-name">
+                        <a href="/shoppingcart/products/detail/<?= $product['id'] ?>">
+                            <?= htmlspecialchars($product['name']) ?>
+                        </a>
+                    </h3>
+                                <div class="product-rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
                         </div>
-        <?php endforeach; ?>
-            <?php else: ?>
-                <div class="text-center w-100">
-                    <p>Không có sản phẩm nào.</p>
-                </div>
-            <?php endif; ?>
+                    <div class="product-price">
+                        <?= number_format($product['price'], 0, ',', '.') ?>₫
                     </div>
-
-    <!-- Product Grid - New Arrivals -->
-    <div class="product-grid" id="new-arrival-grid" style="display: none;">
-            <?php if (!empty($newArrivals)): ?>
-        <?php foreach ($newArrivals as $product): ?>
-        <div class="product-card">
-            <div class="product-image">
-                <a href="/shoppingcart/products/detail/<?= $product['id'] ?>">
-                                <?php if (!empty($product['image'])): ?>
-                                    <img src="/shoppingcart/public/uploads/products/<?= htmlspecialchars($product['image']) ?>" 
-                                         alt="<?= htmlspecialchars($product['name']) ?>"
-                                         onerror="this.src='/shoppingcart/public/images/default-product.jpg'">
-                                <?php else: ?>
-                                    <img src="/shoppingcart/public/images/default-product.jpg" 
-                         alt="<?= htmlspecialchars($product['name']) ?>">
-                                <?php endif; ?>
-                </a>
-                <div class="product-actions">
-                    <button class="action-btn" onclick="addToCart(<?= $product['id'] ?>)">
-                        <i class="fas fa-shopping-cart"></i>
-                    </button>
-                    <button class="action-btn" onclick="addToWishlist(<?= $product['id'] ?>)">
-                        <i class="fas fa-heart"></i>
-                    </button>
                 </div>
-            </div>
-            <div class="product-info">
-                <h3 class="product-name">
+                            </div>
+            <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="text-center w-100">
+                        <p>Không có sản phẩm nào.</p>
+                    </div>
+                <?php endif; ?>
+                        </div>
+
+        <!-- Product Grid - New Arrivals -->
+        <div class="product-grid" id="new-arrival-grid" style="display: none;">
+                <?php if (!empty($newArrivals)): ?>
+            <?php foreach ($newArrivals as $product): ?>
+            <div class="product-card">
+                <div class="product-image">
                     <a href="/shoppingcart/products/detail/<?= $product['id'] ?>">
-                        <?= htmlspecialchars($product['name']) ?>
+                                    <?php if (!empty($product['image'])): ?>
+                                        <img src="/shoppingcart/public/uploads/products/<?= htmlspecialchars($product['image']) ?>" 
+                                             alt="<?= htmlspecialchars($product['name']) ?>"
+                                             onerror="this.src='/shoppingcart/public/images/default-product.jpg'">
+                                    <?php else: ?>
+                                        <img src="/shoppingcart/public/images/default-product.jpg" 
+                             alt="<?= htmlspecialchars($product['name']) ?>">
+                                    <?php endif; ?>
                     </a>
-                </h3>
-                            <div class="product-rating">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                        </div>
-                <div class="product-price">
-                    <?= number_format($product['price'], 0, ',', '.') ?>₫
-                </div>
-            </div>
-        </div>
-        <?php endforeach; ?>
-            <?php else: ?>
-                <div class="text-center w-100">
-                    <p>Không có sản phẩm nào.</p>
-                </div>
-            <?php endif; ?>
-    </div>
-
-    <div class="text-center mt-4">
-        <a href="/shoppingcart/products" class="view-all-btn">Xem tất cả</a>
-    </div>
-</div>
-
-<!-- Shop Overview Section -->
-<section class="shop-overview">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <div class="overview-image">
-                    <img src="/shoppingcart/public/images/about-us.jpg" alt="About Us" class="img-fluid rounded shadow">
-                        </div>
+                    <div class="product-actions">
+                        <button class="action-btn" onclick="addToCart(<?= $product['id'] ?>)">
+                            <i class="fas fa-shopping-cart"></i>
+                        </button>
+                        <button class="action-btn" onclick="addToWishlist(<?= $product['id'] ?>)">
+                            <i class="fas fa-heart"></i>
+                        </button>
                     </div>
-            <div class="col-md-6">
-                <div class="overview-content">
-                    <h2>Về chúng tôi</h2>
-                    <p>Chào mừng bạn đến với cửa hàng thời trang của chúng tôi! Chúng tôi tự hào mang đến những sản phẩm thời trang chất lượng cao với thiết kế độc đáo và phong cách hiện đại.</p>
-                    <p>Với hơn 5 năm kinh nghiệm trong ngành thời trang, chúng tôi luôn đặt sự hài lòng của khách hàng lên hàng đầu. Mỗi sản phẩm được chọn lọc kỹ càng, đảm bảo chất lượng và xu hướng thời trang mới nhất.</p>
-                    <a href="/shoppingcart/about" class="btn-learn-more">Tìm hiểu thêm</a>
                 </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Shopping Benefits Section -->
-<section class="shopping-benefits">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <div class="benefits-content">
-                    <h2>Ưu đãi mua sắm</h2>
-                    <ul class="benefits-list">
-                        <li><i class="fas fa-check"></i> Miễn phí vận chuyển cho đơn hàng từ 500.000đ</li>
-                        <li><i class="fas fa-check"></i> Đổi trả miễn phí trong vòng 30 ngày</li>
-                        <li><i class="fas fa-check"></i> Tích điểm thành viên - Nhận ưu đãi hấp dẫn</li>
-                        <li><i class="fas fa-check"></i> Quà tặng đặc biệt cho thành viên VIP</li>
-                    </ul>
-                    <a href="/shoppingcart/membership" class="btn-join-now">Tham gia ngay</a>
-                        </div>
+                <div class="product-info">
+                    <h3 class="product-name">
+                        <a href="/shoppingcart/products/detail/<?= $product['id'] ?>">
+                            <?= htmlspecialchars($product['name']) ?>
+                        </a>
+                    </h3>
+                                <div class="product-rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                            </div>
+                    <div class="product-price">
+                        <?= number_format($product['price'], 0, ',', '.') ?>₫
                     </div>
-            <div class="col-md-6">
-                <div class="benefits-image">
-                    <img src="/shoppingcart/public/images/shopping-benefits.jpg" alt="Shopping Benefits" class="img-fluid rounded shadow">
+                </div>
+            </div>
+            <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="text-center w-100">
+                        <p>Không có sản phẩm nào.</p>
+                    </div>
+                <?php endif; ?>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="/shoppingcart/products" class="view-all-btn">Xem tất cả</a>
+        </div>
+    </div>
+
+    <!-- Shop Overview Section -->
+    <section class="shop-overview">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="overview-image">
+                        <img src="/shoppingcart/public/images/about-us.jpg" alt="About Us" class="img-fluid rounded shadow">
+                            </div>
+                        </div>
+                <div class="col-md-6">
+                    <div class="overview-content">
+                        <h2>Về chúng tôi</h2>
+                        <p>Chào mừng bạn đến với cửa hàng thời trang của chúng tôi! Chúng tôi tự hào mang đến những sản phẩm thời trang chất lượng cao với thiết kế độc đáo và phong cách hiện đại.</p>
+                        <p>Với hơn 5 năm kinh nghiệm trong ngành thời trang, chúng tôi luôn đặt sự hài lòng của khách hàng lên hàng đầu. Mỗi sản phẩm được chọn lọc kỹ càng, đảm bảo chất lượng và xu hướng thời trang mới nhất.</p>
+                        <a href="/shoppingcart/about" class="btn-learn-more">Tìm hiểu thêm</a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
+
+    <!-- Shopping Benefits Section -->
+    <section class="shopping-benefits">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="benefits-content">
+                        <h2>Ưu đãi mua sắm</h2>
+                        <ul class="benefits-list">
+                            <li><i class="fas fa-check"></i> Miễn phí vận chuyển cho đơn hàng từ 500.000đ</li>
+                            <li><i class="fas fa-check"></i> Đổi trả miễn phí trong vòng 30 ngày</li>
+                            <li><i class="fas fa-check"></i> Tích điểm thành viên - Nhận ưu đãi hấp dẫn</li>
+                            <li><i class="fas fa-check"></i> Quà tặng đặc biệt cho thành viên VIP</li>
+                        </ul>
+                        <a href="/shoppingcart/membership" class="btn-join-now">Tham gia ngay</a>
+                            </div>
+                        </div>
+                <div class="col-md-6">
+                    <div class="benefits-image">
+                        <img src="/shoppingcart/public/images/shopping-benefits.jpg" alt="Shopping Benefits" class="img-fluid rounded shadow">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <?php include __DIR__ . '/../partials/footer.php'; ?>
 
@@ -583,125 +744,59 @@ document.querySelectorAll('.tab-btn').forEach(button => {
 
         // Add to cart functionality
 function addToCart(productId) {
-            fetch('/shoppingcart/app/api/cart.php', {
+    fetch('/shoppingcart/app/api/cart/add.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `product_id=${productId}&quantity=1`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Toast.success(data.message);
+            updateCartCount(data.cart_count);
+        } else {
+            Toast.error(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Toast.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng');
+    });
+}
+
+        // Add to wishlist functionality
+function addToWishlist(productId) {
+    fetch('/shoppingcart/api/wishlist/add', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            product_id: productId,
-            quantity: 1
+            product_id: productId
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-                    // Hiển thị toast thông báo
-                    const toast = document.createElement('div');
-                    toast.className = 'toast position-fixed bottom-0 end-0 m-3';
-                    toast.setAttribute('role', 'alert');
-                    toast.setAttribute('aria-live', 'assertive');
-                    toast.setAttribute('aria-atomic', 'true');
-                    toast.innerHTML = `
-                        <div class="toast-header bg-success text-white">
-                            <strong class="me-auto">Thông báo</strong>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                        </div>
-                        <div class="toast-body">
-                            Sản phẩm đã được thêm vào giỏ hàng
-                        </div>
-                    `;
-                    document.body.appendChild(toast);
-                    const bsToast = new bootstrap.Toast(toast);
-                    bsToast.show();
-
-                    // Cập nhật số lượng trong giỏ hàng
-                    const cartCount = document.querySelector('.cart-count');
-                    if (cartCount) {
-                        cartCount.textContent = data.cart_count;
-                    }
-
-                    // Tự động xóa toast sau khi ẩn
-                    toast.addEventListener('hidden.bs.toast', () => {
-                        toast.remove();
-                    });
+            Toast.success('Sản phẩm đã được thêm vào danh sách yêu thích');
         } else {
-                    // Hiển thị toast lỗi
-                    const toast = document.createElement('div');
-                    toast.className = 'toast position-fixed bottom-0 end-0 m-3';
-                    toast.setAttribute('role', 'alert');
-                    toast.setAttribute('aria-live', 'assertive');
-                    toast.setAttribute('aria-atomic', 'true');
-                    toast.innerHTML = `
-                        <div class="toast-header bg-danger text-white">
-                            <strong class="me-auto">Lỗi</strong>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                        </div>
-                        <div class="toast-body">
-                            ${data.message || 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng'}
-                        </div>
-                    `;
-                    document.body.appendChild(toast);
-                    const bsToast = new bootstrap.Toast(toast);
-                    bsToast.show();
-
-                    // Tự động xóa toast sau khi ẩn
-                    toast.addEventListener('hidden.bs.toast', () => {
-                        toast.remove();
-                    });
+            Toast.error(data.message || 'Có lỗi xảy ra khi thêm sản phẩm vào danh sách yêu thích');
         }
     })
-            .catch(error => {
-                console.error('Error:', error);
-                // Hiển thị toast lỗi
-                const toast = document.createElement('div');
-                toast.className = 'toast position-fixed bottom-0 end-0 m-3';
-                toast.setAttribute('role', 'alert');
-                toast.setAttribute('aria-live', 'assertive');
-                toast.setAttribute('aria-atomic', 'true');
-                toast.innerHTML = `
-                    <div class="toast-header bg-danger text-white">
-                        <strong class="me-auto">Lỗi</strong>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                    <div class="toast-body">
-                        Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng
-                    </div>
-                `;
-                document.body.appendChild(toast);
-                const bsToast = new bootstrap.Toast(toast);
-                bsToast.show();
+    .catch(error => {
+        console.error('Error:', error);
+        Toast.error('Có lỗi xảy ra khi thêm sản phẩm vào danh sách yêu thích');
+    });
+}
 
-                // Tự động xóa toast sau khi ẩn
-                toast.addEventListener('hidden.bs.toast', () => {
-                    toast.remove();
-                });
-            });
-        }
-
-        // Add to wishlist functionality
-function addToWishlist(productId) {
-            fetch('/shoppingcart/api/wishlist/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    product_id: productId
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Sản phẩm đã được thêm vào danh sách yêu thích');
-                } else {
-                    alert(data.message || 'Có lỗi xảy ra khi thêm sản phẩm vào danh sách yêu thích');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Có lỗi xảy ra khi thêm sản phẩm vào danh sách yêu thích');
-            });
+// Cập nhật số lượng giỏ hàng
+function updateCartCount(count) {
+    const cartCountElement = document.querySelector('.cart-count');
+    if (cartCountElement) {
+        cartCountElement.textContent = count;
+    }
 }
 </script> 
 </body>

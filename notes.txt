@@ -1,0 +1,6 @@
+1. footer
+2. item card landingpage
+3. button banner landingpage
+4. button and font text banner products page
+5. icon account header
+6. auth/login, register

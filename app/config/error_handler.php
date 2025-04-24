@@ -49,7 +49,7 @@ function customErrorHandler($errno, $errstr, $errfile, $errline) {
 
     // Display error page with debug information
     header('HTTP/1.1 500 Internal Server Error');
-    include 'app/views/error/debug.php';
+    include __DIR__ . '/../views/error/debug.php';
     return true;
 }
 
@@ -70,7 +70,7 @@ function customExceptionHandler($exception) {
 
     // Display error page with debug information
     header('HTTP/1.1 500 Internal Server Error');
-    include 'app/views/error/debug.php';
+    include __DIR__ . '/../views/error/debug.php';
 }
 
 // Set custom exception handler
@@ -90,6 +90,6 @@ function handle404() {
     );
 
     header('HTTP/1.1 404 Not Found');
-    include 'app/views/error/debug.php';
+    include __DIR__ . '/../views/error/debug.php';
     exit;
 } 

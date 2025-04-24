@@ -167,6 +167,26 @@ try {
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận xóa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa sản phẩm này?</p>
+                <p class="text-danger"><small>Hành động này không thể hoàn tác.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 .product-thumbnail {
     width: 80px;
@@ -195,9 +215,130 @@ try {
     text-align: center;
     margin-top: 10px;
 }
+
+/* Toast Styles */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toast {
+    background: white;
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 300px;
+    max-width: 400px;
+    animation: slideIn 0.3s ease;
+}
+
+.toast.success {
+    border-left: 4px solid #4caf50;
+}
+
+.toast.error {
+    border-left: 4px solid #f44336;
+}
+
+.toast.info {
+    border-left: 4px solid #2196f3;
+}
+
+.toast i {
+    font-size: 20px;
+}
+
+.toast.success i {
+    color: #4caf50;
+}
+
+.toast.error i {
+    color: #f44336;
+}
+
+.toast.info i {
+    color: #2196f3;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
 </style>
 
+<!-- Toast Container -->
+<div class="toast-container"></div>
+
 <script>
+// Toast Implementation
+const Toast = {
+    container: document.querySelector('.toast-container'),
+
+    show(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let icon;
+        switch(type) {
+            case 'success':
+                icon = 'check-circle';
+                break;
+            case 'error':
+                icon = 'exclamation-circle';
+                break;
+            case 'info':
+                icon = 'info-circle';
+                break;
+            default:
+                icon = 'bell';
+        }
+        
+        toast.innerHTML = `
+            <i class="fas fa-${icon}"></i>
+            <div>${message}</div>
+        `;
+        
+        this.container.appendChild(toast);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            toast.style.animation = 'fadeOut 0.3s ease forwards';
+            setTimeout(() => {
+                this.container.removeChild(toast);
+            }, 300);
+        }, 3000);
+    },
+
+    success(message) {
+        this.show(message, 'success');
+    },
+
+    error(message) {
+        this.show(message, 'error');
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     // Xử lý tìm kiếm sản phẩm
     const searchInput = document.getElementById('searchProduct');
@@ -301,10 +442,26 @@ function editProduct(id) {
 }
 
 function deleteProduct(id) {
-    if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+    // Lưu ID sản phẩm cần xóa
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    confirmDeleteBtn.setAttribute('data-product-id', id);
+    
+    // Hiển thị modal xác nhận
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    deleteModal.show();
+}
+
+// Xử lý sự kiện khi nhấn nút xác nhận xóa
+document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    const productId = this.getAttribute('data-product-id');
+    const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
+    
+    // Hiển thị toast loading
+    Toast.show('Đang xóa sản phẩm...', 'info');
+    
         const formData = new FormData();
         formData.append('action', 'delete');
-        formData.append('id', id);
+    formData.append('id', productId);
         
         fetch('/shoppingcart/admin/api/products.php', {
             method: 'POST',
@@ -313,17 +470,26 @@ function deleteProduct(id) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
-            } else {
-                alert(data.message || 'Không thể xóa sản phẩm');
+            // Đóng modal
+            deleteModal.hide();
+            
+            // Xóa hàng khỏi bảng
+            const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+            if (row) {
+                row.remove();
+            }
+            
+            // Hiển thị thông báo thành công
+            Toast.success('Xóa sản phẩm thành công!');
+        } else {
+            throw new Error(data.message || 'Không thể xóa sản phẩm');
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('Đã xảy ra lỗi khi xóa sản phẩm');
+        console.error('Delete Error:', error);
+        Toast.error('Đã xảy ra lỗi khi xóa sản phẩm: ' + error.message);
+    });
         });
-    }
-}
 
 function updateProductRow(product) {
     const row = document.querySelector(`tr[data-product-id="${product.id}"]`);
@@ -397,32 +563,58 @@ function saveProduct() {
     const formData = new FormData(form);
     const isUpdate = formData.get('action') === 'update';
     
+    // Hiển thị loading toast
+    Toast.show('Đang xử lý...', 'info');
+    
     fetch('/shoppingcart/admin/api/products.php', {
         method: 'POST',
         body: formData
     })
     .then(response => response.json())
     .then(data => {
+        console.log('API Response:', data); // Debug log
+        
         if (data.success) {
+            // Đóng modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
+            modal.hide();
+
             if (isUpdate && data.product) {
                 // Nếu là cập nhật và có dữ liệu sản phẩm trả về
                 updateProductRow(data.product);
-                // Đóng modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
-                modal.hide();
-                // Hiển thị thông báo thành công
-                alert('Lưu sản phẩm thành công!');
+                Toast.success('Cập nhật sản phẩm thành công!');
+            } else if (data.product_id) {
+                // Nếu là thêm mới và có ID sản phẩm trả về
+                fetch(`/shoppingcart/admin/api/products.php?action=get&id=${data.product_id}`)
+                    .then(response => response.json())
+                    .then(productData => {
+                        console.log('Get Product Response:', productData); // Debug log
+                        if (productData.success) {
+                            updateProductRow(productData.product);
+                            Toast.success('Thêm sản phẩm thành công!');
+                        } else {
+                            Toast.error(productData.message || 'Không thể tải thông tin sản phẩm');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching new product:', error);
+                        Toast.error('Lỗi khi tải thông tin sản phẩm mới');
+                    });
             } else {
-                // Nếu là thêm mới, reload để lấy ID mới
-                location.reload();
+                Toast.success(data.message || 'Thao tác thành công!');
             }
+
+            // Reset form
+            form.reset();
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('currentImage').style.display = 'none';
         } else {
-            throw new Error(data.message || 'Không thể lưu sản phẩm');
+            Toast.error(data.message || 'Không thể lưu sản phẩm');
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('Đã xảy ra lỗi khi lưu sản phẩm: ' + error.message);
+        console.error('Save Product Error:', error);
+        Toast.error('Đã xảy ra lỗi: ' + error.message);
     });
 }
 

@@ -1,4 +1,10 @@
 <?php
+// Database configuration
+$db_host = 'localhost';
+$db_user = 'root';
+$db_pass = '';
+$db_name = 'shopping_cart';
+
 class Database {
     private $host = "localhost";
     private $db_name = "shopping_cart";
@@ -16,7 +22,7 @@ class Database {
                 $this->password
             );
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->conn->exec("set names utf8");
+            $this->conn->exec("set names utf8mb4");
             return $this->conn;
         } catch(PDOException $e) {
             throw new Exception("Database connection error: " . $e->getMessage());

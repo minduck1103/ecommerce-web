@@ -15,6 +15,14 @@ $conn = $database->getConnection();
 
 header('Content-Type: application/json');
 
+// Hàm tạo slug từ tên
+function createSlug($string) {
+    $string = strtolower($string);
+    $string = preg_replace('/[^a-z0-9-]/', '-', $string);
+    $string = preg_replace('/-+/', '-', $string);
+    return trim($string, '-');
+}
+
 // GET request - Lấy thông tin danh mục
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
     try {
@@ -22,17 +30,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
         $stmt->execute([$_GET['id']]);
         $category = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($category) {
-            echo json_encode([
-                'success' => true,
-                'category' => $category
-            ]);
-        } else {
+        if (!$category) {
             echo json_encode([
                 'success' => false,
                 'message' => 'Không tìm thấy danh mục'
             ]);
+            exit;
         }
+        
+        echo json_encode([
+            'success' => true,
+            'category' => $category
+        ]);
     } catch (PDOException $e) {
         echo json_encode([
             'success' => false,
@@ -41,93 +50,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
     }
 }
 
-// POST request - Thêm danh mục mới
-else if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// POST request - Thêm/sửa danh mục
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
     
     try {
-        // Kiểm tra xem slug đã tồn tại chưa
-        $stmt = $conn->prepare("SELECT COUNT(*) FROM categories WHERE slug = ?");
-        $stmt->execute([$data['slug']]);
-        if ($stmt->fetchColumn() > 0) {
+        // Tạo slug từ tên
+        $slug = createSlug($data['name']);
+        
+        if (isset($data['id'])) {
+            // Cập nhật danh mục
+            $stmt = $conn->prepare("UPDATE categories SET name = ?, slug = ? WHERE id = ?");
+            $stmt->execute([$data['name'], $slug, $data['id']]);
+            
             echo json_encode([
-                'success' => false,
-                'message' => 'Slug đã tồn tại'
+                'success' => true,
+                'message' => 'Cập nhật danh mục thành công'
             ]);
-            exit;
+        } else {
+            // Thêm danh mục mới
+            $stmt = $conn->prepare("INSERT INTO categories (name, slug) VALUES (?, ?)");
+            $stmt->execute([$data['name'], $slug]);
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'Thêm danh mục thành công',
+                'id' => $conn->lastInsertId()
+            ]);
         }
-        
-        $stmt = $conn->prepare("INSERT INTO categories (name, slug, description) VALUES (?, ?, ?)");
-        $stmt->execute([
-            $data['name'],
-            $data['slug'],
-            $data['description'] ?? null
-        ]);
-        
-        echo json_encode([
-            'success' => true,
-            'message' => 'Thêm danh mục thành công'
-        ]);
     } catch (PDOException $e) {
         echo json_encode([
             'success' => false,
-            'message' => 'Lỗi khi thêm danh mục'
-        ]);
-    }
-}
-
-// PUT request - Cập nhật danh mục
-else if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-    $data = json_decode(file_get_contents('php://input'), true);
-    
-    try {
-        // Kiểm tra xem slug đã tồn tại chưa (trừ danh mục hiện tại)
-        $stmt = $conn->prepare("SELECT COUNT(*) FROM categories WHERE slug = ? AND id != ?");
-        $stmt->execute([$data['slug'], $data['id']]);
-        if ($stmt->fetchColumn() > 0) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Slug đã tồn tại'
-            ]);
-            exit;
-        }
-        
-        $stmt = $conn->prepare("UPDATE categories SET name = ?, slug = ?, description = ? WHERE id = ?");
-        $stmt->execute([
-            $data['name'],
-            $data['slug'],
-            $data['description'] ?? null,
-            $data['id']
-        ]);
-        
-        echo json_encode([
-            'success' => true,
-            'message' => 'Cập nhật danh mục thành công'
-        ]);
-    } catch (PDOException $e) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Lỗi khi cập nhật danh mục'
+            'message' => 'Lỗi khi lưu danh mục'
         ]);
     }
 }
 
 // DELETE request - Xóa danh mục
-else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-    $data = json_decode(file_get_contents('php://input'), true);
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    // Đọc dữ liệu từ request body
+    $input = file_get_contents('php://input');
+    $data = json_decode($input, true);
     
+    if (!isset($data['id'])) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Thiếu ID danh mục'
+        ]);
+        exit;
+    }
+
     try {
-        // Kiểm tra xem danh mục có sản phẩm không
-        $stmt = $conn->prepare("SELECT COUNT(*) FROM products WHERE category_id = ?");
+        // Kiểm tra xem danh mục có tồn tại không
+        $stmt = $conn->prepare("SELECT id FROM categories WHERE id = ?");
         $stmt->execute([$data['id']]);
-        if ($stmt->fetchColumn() > 0) {
+        $category = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$category) {
             echo json_encode([
                 'success' => false,
-                'message' => 'Không thể xóa danh mục đang có sản phẩm'
+                'message' => 'Không tìm thấy danh mục'
             ]);
             exit;
         }
-        
+
+        // Thực hiện xóa danh mục
         $stmt = $conn->prepare("DELETE FROM categories WHERE id = ?");
         $stmt->execute([$data['id']]);
         
@@ -138,7 +125,7 @@ else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     } catch (PDOException $e) {
         echo json_encode([
             'success' => false,
-            'message' => 'Lỗi khi xóa danh mục'
+            'message' => 'Lỗi khi xóa danh mục: ' . $e->getMessage()
         ]);
     }
 } 

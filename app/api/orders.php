@@ -9,12 +9,12 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-require_once '../includes/config.php';
+require_once __DIR__ . '/../config/database.php';
+$database = new Database();
+$conn = $database->getConnection();
 
-// Extract order ID from URL
-$uri = $_SERVER['REQUEST_URI'];
-preg_match('/\/api\/orders\/(\d+)/', $uri, $matches);
-$orderId = isset($matches[1]) ? (int)$matches[1] : null;
+// Get order ID from query parameter
+$orderId = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $orderId) {
     try {
@@ -52,11 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $orderId) {
             'orderDetails' => $orderDetails
         ]);
     } catch (PDOException $e) {
+        error_log($e->getMessage());
         header('Content-Type: application/json');
         http_response_code(500);
         echo json_encode([
             'success' => false,
-            'message' => 'Database error occurred'
+            'message' => 'Database error occurred: ' . $e->getMessage()
         ]);
     }
 } else {

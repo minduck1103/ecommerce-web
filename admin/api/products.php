@@ -96,6 +96,22 @@ try {
                 throw new Exception('Vui lòng điền đầy đủ thông tin bắt buộc');
             }
 
+            // Generate slug from name
+            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $_POST['name'])));
+            
+            // Ensure unique slug
+            $baseSlug = $slug;
+            $counter = 1;
+            do {
+                $stmt = $conn->prepare("SELECT COUNT(*) FROM products WHERE slug = ?");
+                $stmt->execute([$slug]);
+                $exists = $stmt->fetchColumn();
+                if ($exists) {
+                    $slug = $baseSlug . '-' . $counter;
+                    $counter++;
+                }
+            } while ($exists);
+
             $image = '';
             if (!empty($_FILES['image']['name'])) {
                 $allowed = ['jpg', 'jpeg', 'png', 'gif'];
@@ -118,17 +134,38 @@ try {
                 }
             }
 
-            $stmt = $conn->prepare("INSERT INTO products (name, category_id, price, quantity, description, image) VALUES (?, ?, ?, ?, ?, ?)");
+            // Set default status based on quantity
+            $quantity = $_POST['quantity'] ?? 0;
+            $status = $quantity > 0 ? 'in-stock' : 'out-of-stock';
+
+            $stmt = $conn->prepare("
+                INSERT INTO products (
+                    name, slug, category_id, price, original_price, 
+                    quantity, description, image, status
+                ) VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?
+                )
+            ");
             $stmt->execute([
                 $_POST['name'],
+                $slug,
                 $_POST['category_id'],
                 $_POST['price'],
-                $_POST['quantity'] ?? 0,
+                $_POST['original_price'] ?? $_POST['price'],
+                $quantity,
                 $_POST['description'] ?? '',
-                $image
+                $image,
+                $status
             ]);
 
-            echo json_encode(['success' => true, 'message' => 'Thêm sản phẩm thành công']);
+            // Get the ID of the newly inserted product
+            $newProductId = $conn->lastInsertId();
+
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Thêm sản phẩm thành công',
+                'product_id' => $newProductId
+            ]);
             break;
 
         case 'update':
@@ -172,14 +209,52 @@ try {
                 }
             }
 
-            $stmt = $conn->prepare("UPDATE products SET name = ?, category_id = ?, price = ?, quantity = ?, description = ?, image = ? WHERE id = ?");
+            // Update slug if name changed
+            $slug = null;
+            if (!empty($_POST['name'])) {
+                $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $_POST['name'])));
+                
+                // Ensure unique slug
+                $baseSlug = $slug;
+                $counter = 1;
+                do {
+                    $stmt = $conn->prepare("SELECT COUNT(*) FROM products WHERE slug = ? AND id != ?");
+                    $stmt->execute([$slug, $_POST['id']]);
+                    $exists = $stmt->fetchColumn();
+                    if ($exists) {
+                        $slug = $baseSlug . '-' . $counter;
+                        $counter++;
+                    }
+                } while ($exists);
+            }
+
+            // Set status based on quantity
+            $quantity = $_POST['quantity'] ?? 0;
+            $status = $quantity > 0 ? 'in-stock' : 'out-of-stock';
+
+            $stmt = $conn->prepare("
+                UPDATE products SET 
+                    name = ?, 
+                    slug = ?,
+                    category_id = ?, 
+                    price = ?, 
+                    original_price = ?,
+                    quantity = ?, 
+                    description = ?, 
+                    image = ?,
+                    status = ?
+                WHERE id = ?
+            ");
             $stmt->execute([
                 $_POST['name'],
+                $slug,
                 $_POST['category_id'],
                 $_POST['price'],
-                $_POST['quantity'] ?? 0,
+                $_POST['original_price'] ?? $_POST['price'],
+                $quantity,
                 $_POST['description'] ?? '',
                 $image,
+                $status,
                 $_POST['id']
             ]);
 

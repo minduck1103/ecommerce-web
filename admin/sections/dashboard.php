@@ -11,22 +11,76 @@ require_once __DIR__ . '/../../app/config/database.php';
 $database = new Database();
 $conn = $database->getConnection();
 
+// Hàm chuyển đổi trạng thái sang tiếng Việt
+function getStatusText($status) {
+    switch($status) {
+        case 'pending': return 'Chờ xử lý';
+        case 'processing': return 'Đang xử lý';
+        case 'shipped': return 'Đã giao cho vận chuyển';
+        case 'delivered': return 'Đã giao hàng';
+        case 'cancelled': return 'Đã hủy';
+        default: return 'Không xác định';
+    }
+}
+
 // Get statistics
 try {
+    // Lấy thống kê cơ bản
     $stats = [
         'products' => $conn->query("SELECT COUNT(*) FROM products")->fetchColumn(),
         'categories' => $conn->query("SELECT COUNT(*) FROM categories")->fetchColumn(),
         'users' => $conn->query("SELECT COUNT(*) FROM users")->fetchColumn(),
         'orders' => $conn->query("SELECT COUNT(*) FROM orders")->fetchColumn(),
-        'revenue' => $conn->query("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE status = 'completed'")->fetchColumn()
+        'revenue' => $conn->query("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE status = 'delivered'")->fetchColumn()
     ];
+
+    // Lấy số lượng đơn hàng theo trạng thái
+    $orderStats = $conn->query("
+        SELECT status, COUNT(*) as count 
+        FROM orders 
+        GROUP BY status
+    ")->fetchAll(PDO::FETCH_ASSOC);
+
+    // Khởi tạo mảng đếm theo trạng thái
+    $stats['pending_orders'] = 0;
+    $stats['processing_orders'] = 0;
+    $stats['shipped_orders'] = 0;
+    $stats['delivered_orders'] = 0;
+    $stats['cancelled_orders'] = 0;
+
+    // Cập nhật số lượng cho từng trạng thái
+    foreach ($orderStats as $stat) {
+        switch ($stat['status']) {
+            case 'pending':
+                $stats['pending_orders'] = $stat['count'];
+                break;
+            case 'processing':
+                $stats['processing_orders'] = $stat['count'];
+                break;
+            case 'shipped':
+                $stats['shipped_orders'] = $stat['count'];
+                break;
+            case 'delivered':
+                $stats['delivered_orders'] = $stat['count'];
+                break;
+            case 'cancelled':
+                $stats['cancelled_orders'] = $stat['count'];
+                break;
+        }
+    }
+
 } catch (PDOException $e) {
     $stats = [
         'products' => 0,
         'categories' => 0,
         'users' => 0,
         'orders' => 0,
-        'revenue' => 0
+        'revenue' => 0,
+        'pending_orders' => 0,
+        'processing_orders' => 0,
+        'shipped_orders' => 0,
+        'delivered_orders' => 0,
+        'cancelled_orders' => 0
     ];
 }
 ?>
@@ -73,6 +127,61 @@ try {
         </div>
     </div>
 
+    <!-- Order Status Statistics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Thống kê trạng thái đơn hàng</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-warning text-dark">
+                                <div class="card-body">
+                                    <h6 class="card-title">Chờ xử lý</h6>
+                                    <p class="card-text h4" id="pendingOrders"><?php echo $stats['pending_orders']; ?></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h6 class="card-title">Đang xử lý</h6>
+                                    <p class="card-text h4" id="processingOrders"><?php echo $stats['processing_orders']; ?></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h6 class="card-title">Đã giao cho vận chuyển</h6>
+                                    <p class="card-text h4" id="shippedOrders"><?php echo $stats['shipped_orders']; ?></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h6 class="card-title">Đã giao hàng</h6>
+                                    <p class="card-text h4" id="deliveredOrders"><?php echo $stats['delivered_orders']; ?></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body">
+                                    <h6 class="card-title">Đã hủy</h6>
+                                    <p class="card-text h4" id="cancelledOrders"><?php echo $stats['cancelled_orders']; ?></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Recent Orders Table -->
     <div class="row">
         <div class="col-12">
@@ -106,8 +215,8 @@ try {
                                         echo "<td>{$order['id']}</td>";
                                         echo "<td>{$order['customer_email']}</td>";
                                         echo "<td>" . number_format($order['total_amount'], 0, ',', '.') . "đ</td>";
-                                        echo "<td>{$order['status']}</td>";
-                                        echo "<td>{$order['created_at']}</td>";
+                                        echo "<td>" . getStatusText($order['status']) . "</td>";
+                                        echo "<td>" . date('d/m/Y H:i', strtotime($order['created_at'])) . "</td>";
                                         echo "</tr>";
                                     }
                                 } else {
