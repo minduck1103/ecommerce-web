@@ -7,8 +7,8 @@ error_log("Loading orders.php");
 
 // Khởi tạo kết nối database
 try {
-    $database = new Database();
-    $conn = $database->getConnection();
+$database = new Database();
+$conn = $database->getConnection();
     error_log("Database connection successful");
 } catch (Exception $e) {
     error_log("Database connection error: " . $e->getMessage());
@@ -322,7 +322,7 @@ function getPaymentMethodText($method) {
                 <button type="button" class="btn btn-danger" onclick="confirmDelete()">
                     Xóa
                 </button>
-            </div>
+        </div>
         </div>
     </div>
 </div>
@@ -385,7 +385,7 @@ $(document).ready(function() {
             console.log('DataTables is loaded');
             
             // Initialize DataTable
-            $('#ordersTable').DataTable({
+    $('#ordersTable').DataTable({
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Vietnamese.json"
                 },
@@ -410,21 +410,21 @@ async function viewOrderDetails(orderId) {
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
-        }
+                }
         
         const data = await response.json();
         console.log('Order data:', data);
         
-        if (data.success) {
-            const order = data.order;
+            if (data.success) {
+                const order = data.order;
             const orderDetails = data.orderDetails;
-            
+
             // Update order information
             document.getElementById('orderIdSpan').textContent = order.id;
-            document.getElementById('customerName').textContent = order.full_name || 'N/A';
-            document.getElementById('customerEmail').textContent = order.email || 'N/A';
-            document.getElementById('customerPhone').textContent = order.phone || 'N/A';
-            document.getElementById('customerAddress').textContent = order.address || 'N/A';
+                document.getElementById('customerName').textContent = order.full_name || 'N/A';
+                document.getElementById('customerEmail').textContent = order.email || 'N/A';
+                document.getElementById('customerPhone').textContent = order.phone || 'N/A';
+                document.getElementById('customerAddress').textContent = order.address || 'N/A';
             document.getElementById('orderDate').textContent = new Date(order.created_at).toLocaleString('vi-VN');
             document.getElementById('orderStatus').textContent = getStatusTextJS(order.status);
             document.getElementById('shippingMethod').textContent = getShippingMethodTextJS(order.shipping_method);
@@ -466,17 +466,17 @@ async function viewOrderDetails(orderId) {
             document.getElementById('subtotal').textContent = formatCurrency(subtotal);
             document.getElementById('shippingFeeTotal').textContent = formatCurrency(order.shipping_fee);
             document.getElementById('grandTotal').textContent = formatCurrency(order.total_amount);
-            
+
             // Show modal
             const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
             modal.show();
-        } else {
+            } else {
             showToast('Lỗi', data.message || 'Không thể tải thông tin đơn hàng', 'error');
-        }
+            }
     } catch (error) {
         console.error('Error in viewOrderDetails:', error);
         showToast('Lỗi', 'Có lỗi xảy ra khi tải thông tin đơn hàng', 'error');
-    }
+            }
 }
 
 let orderIdToDelete = null;
@@ -496,10 +496,10 @@ async function confirmDelete() {
 
     try {
         const response = await fetch('api/orders.php', {
-            method: 'DELETE',
-            headers: {
+        method: 'DELETE',
+        headers: {
                 'Content-Type': 'application/json'
-            },
+        },
             body: JSON.stringify({ id: orderIdToDelete })
         });
 
@@ -630,7 +630,7 @@ function updateDashboardStats() {
             console.error('Error updating dashboard stats:', error);
         });
 }
-</script>
+</script> 
 
 <?php
 // Debug: Print end of file
