@@ -1,4 +1,4 @@
-# 🚀 [Tên Dự Án Website Của Bạn] 🚀
+# 🚀 [Uniclothing - ECommerce website] 🚀
 
 Một website e-commerce được xây dựng với kiến trúc MVC, cung cấp trải nghiệm mua sắm trực tuyến hiệu quả và thân thiện.
 
@@ -46,27 +46,28 @@ Một website e-commerce được xây dựng với kiến trúc MVC, cung cấp
 * **🔍 Tìm kiếm sản phẩm:** Chức năng tìm kiếm nâng cao, gợi ý từ khóa.
 * **🏷️ Phân loại sản phẩm:** Sản phẩm được tổ chức khoa học theo các danh mục đa cấp.
 
+
 ---
 
 ## ⚙️ Cách Hoạt Động Của Website
 
 ### Luồng Xử Lý Chính & Mô Hình MVC
 
-Dự án tuân thủ nghiêm ngặt kiến trúc **Model-View-Controller (MVC)**:
+Dự án áp dụng kiến trúc **Model-View-Controller (MVC)** để phân tách các thành phần:
 
-* **Model:** Chịu trách nhiệm về dữ liệu và logic nghiệp vụ liên quan đến dữ liệu. Tương tác trực tiếp với cơ sở dữ liệu (CSDL).
-* **View:** Chịu trách nhiệm hiển thị giao diện người dùng (UI). Nhận dữ liệu từ Controller và trình bày dưới dạng HTML.
-* **Controller:** Đóng vai trò điều phối viên. Nhận yêu cầu (request) từ người dùng, giao tiếp với Model để xử lý dữ liệu, và chọn View thích hợp để trả về phản hồi (response).
+* **Model:** Quản lý dữ liệu và logic nghiệp vụ liên quan đến dữ liệu (tương tác với database).
+* **View:** Hiển thị giao diện người dùng (HTML, CSS, JS).
+* **Controller:** Trung gian nhận request, điều phối xử lý, gọi Model và chọn View.
 
 **Sơ đồ luồng xử lý cơ bản:**
 
 ```mermaid
 graph LR
-    A[👤 User Request (Browser)] --> B(🌐 Router / public/index.php);
-    B -- Route Request --> C{<font color=blue>Controller</font>};
-    C -- Request Data/Logic --> D[<font color=green>Model</font> (Database Interaction)];
+    A[👤 User Request (Browser)] --> B(🌐 Router / index.php);
+    B -- Route Request --> C{🎮 Controller};
+    C -- Request Data/Logic --> D[🧱 Model (DB Interaction)];
     D -- Return Data --> C;
-    C -- Pass Data --> E[<font color=orange>View</font> (HTML Template)];
+    C -- Pass Data --> E[🖼️ View (HTML Template)];
     E -- Generate HTML --> F[💻 User Response (Browser)];
 
     ---
@@ -120,7 +121,5 @@ Dự án được tổ chức theo cấu trúc thư mục rõ ràng, tuân thủ
 │   └── index.php               #   • 🔥 Entry Point - Điểm vào duy nhất của ứng dụng.
 │
 ├── 🗃️ database/                # ✨ Quản lý Cơ sở dữ liệu
-│   ├── migrations/             #   • (Nếu dùng) Quản lý versioning cấu trúc CSDL.
-│   └── seeds/                  #   • (Nếu dùng) Tạo dữ liệu mẫu (seeding).
 │
 └── 📄 README.md                # ✨ File tài liệu hướng dẫn này.
