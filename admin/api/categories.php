@@ -71,12 +71,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Thêm danh mục mới
             $stmt = $conn->prepare("INSERT INTO categories (name, slug) VALUES (?, ?)");
             $stmt->execute([$data['name'], $slug]);
-            
-            echo json_encode([
-                'success' => true,
+        
+        echo json_encode([
+            'success' => true,
                 'message' => 'Thêm danh mục thành công',
                 'id' => $conn->lastInsertId()
-            ]);
+        ]);
         }
     } catch (PDOException $e) {
         echo json_encode([
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
         ]);
         exit;
     }
-
+    
     try {
         // Kiểm tra xem danh mục có tồn tại không
         $stmt = $conn->prepare("SELECT id FROM categories WHERE id = ?");
@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
             ]);
             exit;
         }
-
+        
         // Thực hiện xóa danh mục
         $stmt = $conn->prepare("DELETE FROM categories WHERE id = ?");
         $stmt->execute([$data['id']]);

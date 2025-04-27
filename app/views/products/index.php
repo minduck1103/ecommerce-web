@@ -88,17 +88,24 @@ try {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Banner Section */
         .banner-section {
             margin-top: -80px;
-            height: 60vh;
+            height: 50vh; 
             position: relative;
             margin-bottom: 2rem;
-            background-color: #000;
+            background-color: #fff;
+            width: 100%;
+            overflow: hidden;
+            max-height: 600px;
+            max-width: 1320px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .banner-container {
             width: 100%;
+            max-width: 1320px;
+            margin: 0 auto;
             height: 100%;
             position: relative;
             overflow: hidden;
@@ -109,7 +116,7 @@ try {
             height: 100%;
             object-fit: cover;
             object-position: center;
-            opacity: 0.85;
+            opacity: 0.9;
             transform: scale(1.02);
             transition: transform 6s ease;
         }
@@ -151,6 +158,7 @@ try {
             text-transform: uppercase;
             letter-spacing: 2px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif
         }
 
         .banner-subtitle {
@@ -160,6 +168,7 @@ try {
             max-width: 600px;
             margin-left: auto;
             margin-right: auto;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif
         }
 
         .banner-button {
@@ -658,7 +667,7 @@ try {
                     <?php if (!empty($searchQuery)): ?>
                         <?php echo htmlspecialchars($searchQuery); ?>
                     <?php else: ?>
-                        Sản phẩm mới nhất
+                        Bộ sưu tập mùa hè 2025
                     <?php endif; ?>
                 </h1>
                 <p class="banner-subtitle">
@@ -668,7 +677,6 @@ try {
                         Hàng ngàn sản phẩm đang chờ được chọn lựa
                     <?php endif; ?>
                 </p>
-                <a href="#products" class="banner-button">Xem sản phẩm</a>
             </div>
         </div>
     </div>

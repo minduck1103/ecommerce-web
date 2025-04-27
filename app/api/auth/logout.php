@@ -14,8 +14,8 @@ session_destroy();
 
 // Trả về response
 header('Content-Type: application/json');
-echo json_encode([
-    'success' => true,
-    'message' => 'Đăng xuất thành công'
-]);
+    echo json_encode([
+        'success' => true,
+        'message' => 'Đăng xuất thành công'
+    ]);
 ?> 

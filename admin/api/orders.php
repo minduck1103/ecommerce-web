@@ -11,8 +11,8 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 }
 
 // Khởi tạo kết nối database
-$database = new Database();
-$conn = $database->getConnection();
+    $database = new Database();
+    $conn = $database->getConnection();
 
 // Đặt header JSON
 header('Content-Type: application/json');
@@ -24,50 +24,50 @@ switch ($method) {
     case 'GET':
         // Lấy chi tiết đơn hàng
         if (isset($_GET['id'])) {
-            try {
-                $orderId = (int)$_GET['id'];
-                
-                // Lấy thông tin đơn hàng
-                $stmt = $conn->prepare("
+    try {
+        $orderId = (int)$_GET['id'];
+
+        // Lấy thông tin đơn hàng
+        $stmt = $conn->prepare("
                     SELECT o.*, u.username, u.email, u.full_name, u.phone, u.address,
                            o.shipping_method, o.payment_method, o.shipping_fee, o.note
-                    FROM orders o
-                    LEFT JOIN users u ON o.user_id = u.id
-                    WHERE o.id = ?
-                ");
-                $stmt->execute([$orderId]);
-                $order = $stmt->fetch(PDO::FETCH_ASSOC);
+            FROM orders o
+            LEFT JOIN users u ON o.user_id = u.id
+            WHERE o.id = ?
+        ");
+        $stmt->execute([$orderId]);
+        $order = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                if (!$order) {
+        if (!$order) {
                     throw new Exception('Không tìm thấy đơn hàng');
-                }
+        }
 
-                // Lấy chi tiết sản phẩm trong đơn hàng
-                $stmt = $conn->prepare("
+        // Lấy chi tiết sản phẩm trong đơn hàng
+        $stmt = $conn->prepare("
                     SELECT oi.*, p.name as product_name, p.image as product_image, 
                            CONCAT('/shoppingcart/public/uploads/products/', p.image) as product_image_url
                     FROM order_items oi
                     LEFT JOIN products p ON oi.product_id = p.id
                     WHERE oi.order_id = ?
-                ");
-                $stmt->execute([$orderId]);
+        ");
+        $stmt->execute([$orderId]);
                 $orderItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                echo json_encode([
-                    'success' => true,
-                    'order' => $order,
+        echo json_encode([
+            'success' => true,
+            'order' => $order,
                     'orderDetails' => $orderItems
-                ]);
+        ]);
 
-            } catch (Exception $e) {
+    } catch (Exception $e) {
                 http_response_code(404);
-                echo json_encode([
-                    'success' => false,
-                    'message' => $e->getMessage()
-                ]);
-            }
-            exit;
-        }
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+    exit;
+}
         break;
 
     case 'PUT':
@@ -100,13 +100,13 @@ switch ($method) {
         $success = $stmt->execute([$data['status'], $orderId]);
 
         if ($success) {
-            echo json_encode([
-                'success' => true,
+        echo json_encode([
+            'success' => true,
                 'message' => 'Cập nhật trạng thái thành công'
-            ]);
+        ]);
         } else {
             throw new Exception('Không thể cập nhật trạng thái đơn hàng');
-        }
+    }
         break;
 
     case 'DELETE':
@@ -138,10 +138,10 @@ switch ($method) {
         $success = $stmt->execute([$orderId]);
 
         if ($success) {
-            echo json_encode([
-                'success' => true,
+        echo json_encode([
+            'success' => true,
                 'message' => 'Đã xóa đơn hàng thành công'
-            ]);
+        ]);
         } else {
             throw new Exception('Không thể xóa đơn hàng');
         }
@@ -153,4 +153,4 @@ switch ($method) {
         break;
 }
 
-exit;
+exit; 

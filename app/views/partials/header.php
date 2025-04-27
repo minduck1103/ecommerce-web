@@ -435,7 +435,7 @@
                 <?php else: ?>
                     <a href="/shoppingcart/auth/login" class="icon-btn">
                         <i class="fas fa-user" style="color: #000;"></i>
-                    </a>
+                        </a>
                 <?php endif; ?>
             </div>
         </div>

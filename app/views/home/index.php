@@ -65,13 +65,16 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
             height: 80vh;
             position: relative;
             margin-bottom: 2rem;
-            background-color: #000;
+            background-color: #fff;
             width: 100%;
             overflow: hidden;
+            max-height: 700px
         }
 
         .banner-container {
             width: 100%;
+            max-width: 1320px;
+            margin: 0 auto;
             height: 100%;
             position: relative;
             overflow: hidden;
@@ -135,6 +138,7 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
             text-align: center;
             position: relative;
             z-index: 3;
+            top: 30vh;
         }
 
         .banner-button {
@@ -150,6 +154,7 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             text-transform: uppercase;
             letter-spacing: 1px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
         .banner-button:hover {
@@ -160,16 +165,6 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
         }
 
         /* Responsive styles */
-        @media (max-width: 5000px) {
-            .banner-container {
-                width: 100%;
-                max-width: 1320px;
-                left: auto;
-                transform: none;
-                margin: 0 auto;
-            }
-        }
-
         @media (max-width: 1400px) {
             .banner-container {
                 max-width: 1140px;
@@ -611,7 +606,7 @@ echo "<!-- New Arrivals Data: " . json_encode($newArrivals) . " -->";
             <div class="banner-overlay"></div>
             <div class="banner-content">
                     <div class="banner-button-container">
-                <a href="/shoppingcart/products" class="banner-button">Xem sản phẩm</a>
+                        <a href="/shoppingcart/products" class="banner-button">Xem sản phẩm</a>
                     </div>
             </div>
         </div>

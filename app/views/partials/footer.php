@@ -96,7 +96,7 @@
             <div class="row align-items-center">
                 <div class="col-md-6">
                     <p class="copyright">
-                        © 2024 Fashion Shop. Thiết kế bởi <a href="#" class="author-link">Your Name</a>
+                        © 2025 Fashion Shop. Thiết kế bởi <a href="#" class="author-link">Cud1</a>
                     </p>
                 </div>
                 <div class="col-md-6">

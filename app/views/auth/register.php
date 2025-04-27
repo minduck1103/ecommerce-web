@@ -276,15 +276,15 @@ require_once __DIR__ . '/../partials/header.php';
 
     document.getElementById('registerForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         const submitButton = this.querySelector('button[type="submit"]');
         submitButton.disabled = true;
-        
+
         const formData = new FormData(this);
-        
+
         fetch('/shoppingcart/app/api/auth/register.php', {
-            method: 'POST',
-            body: formData
+                method: 'POST',
+                body: formData
         })
         .then(response => response.json())
         .then(data => {
@@ -314,7 +314,7 @@ require_once __DIR__ . '/../partials/header.php';
             const toast = new bootstrap.Toast(document.getElementById('registerToast'));
             document.getElementById('registerToast').classList.add('bg-danger');
             document.querySelector('#registerToast .toast-body').textContent = 'Có lỗi xảy ra. Vui lòng thử lại sau.';
-            toast.show();
+        toast.show();
             submitButton.disabled = false;
         });
     });

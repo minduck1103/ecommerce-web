@@ -92,7 +92,7 @@ async function deleteUser(userId) {
         method: 'DELETE',
         headers: {
                 'Content-Type': 'application/json'
-            },
+        },
             body: JSON.stringify({ id: userId })
         });
 

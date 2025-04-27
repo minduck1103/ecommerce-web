@@ -205,12 +205,12 @@ function showNotification(message, type = 'success') {
 async function saveCategory() {
     const id = document.getElementById('categoryId').value;
     const name = document.getElementById('categoryName').value;
-    
+                
     if (!name) {
         showNotification('Vui lòng nhập tên danh mục', 'danger');
         return;
-    }
-    
+}
+
     try {
         const response = await fetch('api/categories.php', {
             method: 'POST',
@@ -243,4 +243,4 @@ async function saveCategory() {
         showNotification('Có lỗi xảy ra khi lưu danh mục', 'danger');
     }
 }
-</script>
+</script> 

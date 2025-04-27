@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
                 'message' => 'Không thể xóa tài khoản đang đăng nhập'
             ]);
             exit;
-        }
+            }
 
         // Kiểm tra user tồn tại và role
         $stmt = $conn->prepare("SELECT role FROM users WHERE id = ?");
@@ -100,8 +100,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
         $success = $stmt->execute([$userId]);
 
         if ($success) {
-            echo json_encode([
-                'success' => true,
+        echo json_encode([
+            'success' => true,
                 'message' => 'Xóa người dùng thành công'
             ]);
         } else {
@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
             'success' => false,
             'message' => 'Lỗi khi xóa người dùng: ' . $e->getMessage()
         ]);
-    }
+            }
     exit;
 }
 
@@ -124,11 +124,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
         $userId = (int)$_GET['id'];
         if ($userId <= 0) {
             throw new Exception('ID người dùng không hợp lệ');
-        }
+            }
 
         $stmt = $conn->prepare("SELECT id, email, full_name, role FROM users WHERE id = ?");
         $stmt->execute([$userId]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$user) {
             throw new Exception('Không tìm thấy người dùng');
