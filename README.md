@@ -6,6 +6,7 @@ Một website e-commerce được xây dựng với kiến trúc MVC, cung cấp
 
 ## 📖 Mục Lục
 
+* [📸 Screenshots / Demo Project](#screenshots)
 * [✨ Các Chức Năng Chính](#-các-chức-năng-chính)
 * [⚙️ Cách Hoạt Động Của Website](#️-cách-hoạt-động-của-website)
     * [Luồng Xử Lý Chính \& Mô Hình MVC](#luồng-xử-lý-chính--mô-hình-mvc)
@@ -18,7 +19,24 @@ Một website e-commerce được xây dựng với kiến trúc MVC, cung cấp
     * [Config (`config/`)](#config-config)
     * [Public (`public/`)](#public-public)
     * [Database (`database/`)](#database-database)
-* [🔧 Cài đặt và Chạy Dự án](#-cài-đặt-và-chạy-dự-án) * [🤝 Đóng góp](#-đóng-góp) ---
+
+
+## 📸 Demo Project 
+
+* **Trang chủ:**
+    ![Trang chủ Uniclothing](docs/images/screenshot_homepage.png) 
+* **Trang danh sách sản phẩm:**
+    ![Trang danh sách sản phẩm](docs/images/screenshot_product_list.png)
+* **Trang chi tiết sản phẩm:**
+    ![Trang chi tiết sản phẩm](docs/images/screenshot_product_detail.png)
+* **Giỏ hàng:**
+    ![Giỏ hàng](docs/images/screenshot_cart.png)
+* **Trang thanh toán:**
+    ![Trang thanh toán](docs/images/screenshot_checkout.png)
+* **Trang quản lý tài khoản:**
+    ![Trang quản lý tài khoản](docs/images/screenshot_account.png)
+
+--- 
 
 ## ✨ Các Chức Năng Chính
 
@@ -61,16 +79,32 @@ Dự án áp dụng kiến trúc **Model-View-Controller (MVC)** để phân tá
 
 **Sơ đồ luồng xử lý cơ bản:**
 
-```mermaid
-graph LR
-    A[👤 User Request (Browser)] --> B(🌐 Router / index.php);
-    B -- Route Request --> C{🎮 Controller};
-    C -- Request Data/Logic --> D[🧱 Model (DB Interaction)];
-    D -- Return Data --> C;
-    C -- Pass Data --> E[🖼️ View (HTML Template)];
-    E -- Generate HTML --> F[💻 User Response (Browser)];
+[👤 User Request (Browser)]
+          |
+          V
+[🌐 Router / index.php] -- Route Request --> [🎮 Controller]
+                                                /|\      |
+                                                 |       | Request Data/Logic
+                                Return Data      |       V
+                                                 |      [🧱 Model (DB Interaction)]
+                                                 |       |
+          Pass Data                              |      /
+                 <-------------------------------       /
+                 |
+                 V
+        [🖼️ View (HTML Template)]
+                 |
+                 | Generate HTML
+                 V
+        [💻 User Response (Browser)]
 
-    ---
+1.  **[👤 User Request (Browser)]**: Người dùng gửi yêu cầu từ trình duyệt.
+2.  **[🌐 Router / index.php]**: Yêu cầu được chuyển đến bộ định tuyến (Router) hoặc file đầu vào (index.php).
+3.  **[🎮 Controller]**: Router xác định và chuyển yêu cầu đến Controller phù hợp.
+4.  **[🧱 Model (DB Interaction)]**: Controller tương tác với Model để yêu cầu dữ liệu hoặc thực thi logic nghiệp vụ (ví dụ: truy vấn cơ sở dữ liệu).
+5.  **[🎮 Controller]**: Model trả dữ liệu về cho Controller.
+6.  **[🖼️ View (HTML Template)]**: Controller chuyển dữ liệu đã xử lý sang View (template HTML).
+7.  **[💻 User Response (Browser)]**: View tạo ra nội dung HTML hoàn chỉnh và gửi về trình duyệt cho người dùng.
 
 ## 📁 Cấu Trúc Thư Mục và Chức Năng File
 
