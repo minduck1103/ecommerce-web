@@ -28,18 +28,18 @@ Một website e-commerce được xây dựng với kiến trúc MVC, cung cấp
     ![Trang chủ - Ảnh 2](public/images/screenshot_homepage1.png)
     ![Trang chủ - Ảnh 3](public/images/screenshot_homepage2.png) 
 * **Trang danh sách sản phẩm:**
-    ![Trang danh sách sản phẩm](public/images/screenshot_product_list.png)
+    ![Trang danh sách sản phẩm](public/demo/screenshot_product_list.png)
 * **Trang chi tiết sản phẩm:**
-    ![Trang chi tiết sản phẩm](public/images/screenshot_product_detail.png)
+    ![Trang chi tiết sản phẩm](public/demo/screenshot_product_detail.png)
 * **Giỏ hàng:**
-    ![Giỏ hàng](public/images/screenshot_cart.png)
+    ![Giỏ hàng](public/demo/screenshot_cart.png)
     ![Giỏ hàng Empty](public/images/screenshot_cart_empty.png)
 * **Trang thanh toán:**
-    ![Trang thanh toán](public/images/screenshot_checkout.png)
+    ![Trang thanh toán](public/demo/screenshot_checkout.png)
 * **Trang quản lý tài khoản:**
-    ![Trang quản lý tài khoản](public/images/screenshot_profile.png)
+    ![Trang quản lý tài khoản](public/demo/screenshot_profile.png)
 * **Trang quản lý đơn hàng:**
-    ![Trang quản lý đơn hàng](public/images/screenshot_orders.png)
+    ![Trang quản lý đơn hàng](public/demo/screenshot_orders.png)
 
 --- 
 
