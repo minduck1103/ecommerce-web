@@ -6,8 +6,8 @@ Một website e-commerce được xây dựng với kiến trúc MVC, cung cấp
 
 ## 📖 Mục Lục
 
-* [📸 Screenshots / Demo Project](#screenshots)
 * [✨ Các Chức Năng Chính](#-các-chức-năng-chính)
+* [📸 Screenshots / Demo Project](#screenshots)
 * [⚙️ Cách Hoạt Động Của Website](#️-cách-hoạt-động-của-website)
     * [Luồng Xử Lý Chính \& Mô Hình MVC](#luồng-xử-lý-chính--mô-hình-mvc)
     * [Thứ Tự Hoạt Động Chi Tiết](#thứ-tự-hoạt-động-chi-tiết)
@@ -20,28 +20,6 @@ Một website e-commerce được xây dựng với kiến trúc MVC, cung cấp
     * [Public (`public/`)](#public-public)
     * [Database (`database/`)](#database-database)
 
-
-## 📸 Demo Project 
-
-* **Trang chủ:**
-    ![Trang chủ - Ảnh 1](public/images/screenshot_homepage.png)
-    ![Trang chủ - Ảnh 2](public/images/screenshot_homepage1.png)
-    ![Trang chủ - Ảnh 3](public/images/screenshot_homepage2.png) 
-* **Trang danh sách sản phẩm:**
-    ![Trang danh sách sản phẩm](public/demo/screenshot_product_list.png)
-* **Trang chi tiết sản phẩm:**
-    ![Trang chi tiết sản phẩm](public/demo/screenshot_product_detail.png)
-* **Giỏ hàng:**
-    ![Giỏ hàng](public/demo/screenshot_cart.png)
-    ![Giỏ hàng Empty](public/images/screenshot_cart_empty.png)
-* **Trang thanh toán:**
-    ![Trang thanh toán](public/demo/screenshot_checkout.png)
-* **Trang quản lý tài khoản:**
-    ![Trang quản lý tài khoản](public/demo/screenshot_profile.png)
-* **Trang quản lý đơn hàng:**
-    ![Trang quản lý đơn hàng](public/demo/screenshot_orders.png)
-
---- 
 
 ## ✨ Các Chức Năng Chính
 
@@ -71,6 +49,28 @@ Một website e-commerce được xây dựng với kiến trúc MVC, cung cấp
 
 
 ---
+
+## 📸 Demo Project 
+
+* **Trang chủ:**
+    ![Trang chủ - Ảnh 1](public/demo/screenshot_homepage.png)
+    ![Trang chủ - Ảnh 2](public/demo/screenshot_homepage1.png)
+    ![Trang chủ - Ảnh 3](public/demo/screenshot_homepage2.png) 
+* **Trang danh sách sản phẩm:**
+    ![Trang danh sách sản phẩm](public/demo/screenshot_product_list.png)
+* **Trang chi tiết sản phẩm:**
+    ![Trang chi tiết sản phẩm](public/demo/screenshot_product_detail.png)
+* **Giỏ hàng:**
+    ![Giỏ hàng](public/demo/screenshot_cart.png)
+    ![Giỏ hàng Empty](public/demo/screenshot_cart_empty.png)
+* **Trang thanh toán:**
+    ![Trang thanh toán](public/demo/screenshot_checkout.png)
+* **Trang quản lý tài khoản:**
+    ![Trang quản lý tài khoản](public/demo/screenshot_profile.png)
+* **Trang quản lý đơn hàng:**
+    ![Trang quản lý đơn hàng](public/demo/screenshot_orders.png)
+
+--- 
 
 ## ⚙️ Cách Hoạt Động Của Website
 
