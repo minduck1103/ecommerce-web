@@ -24,17 +24,22 @@ Một website e-commerce được xây dựng với kiến trúc MVC, cung cấp
 ## 📸 Demo Project 
 
 * **Trang chủ:**
-    ![Trang chủ Uniclothing](public/images/screenshot_homepage.png)(public/images/screenshot_homepage1.png)(public/images/screenshot_homepage1.png) 
+    ![Trang chủ - Ảnh 1](public/images/screenshot_homepage.png)
+    ![Trang chủ - Ảnh 2](public/images/screenshot_homepage1.png)
+    ![Trang chủ - Ảnh 3](public/images/screenshot_homepage2.png) 
 * **Trang danh sách sản phẩm:**
-    ![Trang danh sách sản phẩm](docs/images/screenshot_product_list.png)
+    ![Trang danh sách sản phẩm](public/images/screenshot_product_list.png)
 * **Trang chi tiết sản phẩm:**
-    ![Trang chi tiết sản phẩm](docs/images/screenshot_product_detail.png)
+    ![Trang chi tiết sản phẩm](public/images/screenshot_product_detail.png)
 * **Giỏ hàng:**
-    ![Giỏ hàng](docs/images/screenshot_cart.png)
+    ![Giỏ hàng](public/images/screenshot_cart.png)
+    ![Giỏ hàng Empty](public/images/screenshot_cart_empty.png)
 * **Trang thanh toán:**
-    ![Trang thanh toán](docs/images/screenshot_checkout.png)
+    ![Trang thanh toán](public/images/screenshot_checkout.png)
 * **Trang quản lý tài khoản:**
-    ![Trang quản lý tài khoản](docs/images/screenshot_account.png)
+    ![Trang quản lý tài khoản](public/images/screenshot_profile.png)
+* **Trang quản lý đơn hàng:**
+    ![Trang quản lý đơn hàng](public/images/screenshot_orders.png)
 
 --- 
 
